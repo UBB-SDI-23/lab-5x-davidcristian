@@ -41,7 +41,6 @@ export const AllEmployees = () => {
     const currentEmployees = [...employees];
 
     const sortedCurrentUsers = currentEmployees.sort((a, b) => {
-      console.log(sorting.key);
       return a[sorting.key].localeCompare(b[sorting.key]);
     });
 
@@ -98,7 +97,9 @@ export const AllEmployees = () => {
                 <TableCell align="left">TerminationDate</TableCell>
                 <TableCell align="left">Salary</TableCell>
                 <TableCell align="left">Role</TableCell>
-                <TableCell align="center">Operations</TableCell>
+                <TableCell align="left"></TableCell>
+                <TableCell align="left"></TableCell>
+                <TableCell align="left"></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -120,7 +121,7 @@ export const AllEmployees = () => {
                   <TableCell align="left">
                     {employee.storeEmployeeRole?.name}
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="left">
                     <IconButton
                       component={Link}
                       sx={{ mr: 3 }}
@@ -130,7 +131,8 @@ export const AllEmployees = () => {
                         <ReadMoreIcon color="primary" />
                       </Tooltip>
                     </IconButton>
-
+                  </TableCell>
+                  <TableCell align="left">
                     <IconButton
                       component={Link}
                       sx={{ mr: 3 }}
@@ -138,7 +140,8 @@ export const AllEmployees = () => {
                     >
                       <EditIcon />
                     </IconButton>
-
+                  </TableCell>
+                  <TableCell align="left">
                     <IconButton
                       component={Link}
                       sx={{ mr: 3 }}

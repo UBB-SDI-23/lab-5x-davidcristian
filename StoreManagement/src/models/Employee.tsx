@@ -22,4 +22,5 @@ export interface Employee {
 
   storeEmployeeRole?: EmployeeRole;
   storeShifts?: StoreShift[];
+  [key: string]: any;
 }
