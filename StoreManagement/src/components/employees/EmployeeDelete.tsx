@@ -46,7 +46,7 @@ export const EmployeeDelete = () => {
           Are you sure you want to delete this employee? This cannot be undone!
         </CardContent>
         <CardActions>
-          <Button onClick={handleDelete}>Delete it</Button>
+          <Button onClick={handleDelete}>Yes</Button>
           <Button onClick={handleCancel}>Cancel</Button>
         </CardActions>
       </Card>

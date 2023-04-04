@@ -24,6 +24,31 @@ import AddIcon from "@mui/icons-material/Add";
 export const AllEmployees = () => {
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [sorting, setSorting] = useState({
+    key: "firstName",
+    ascending: true,
+  });
+
+  function applySorting(key: string, ascending: boolean) {
+    setSorting({ key: key, ascending: ascending });
+  }
+
+  useEffect(() => {
+    if (employees.length === 0) {
+      return;
+    }
+
+    const currentEmployees = [...employees];
+
+    const sortedCurrentUsers = currentEmployees.sort((a, b) => {
+      console.log(sorting.key);
+      return a[sorting.key].localeCompare(b[sorting.key]);
+    });
+
+    setEmployees(
+      sorting.ascending ? sortedCurrentUsers : sortedCurrentUsers.reverse()
+    );
+  }, [sorting]);
 
   useEffect(() => {
     setLoading(true);
@@ -54,8 +79,20 @@ export const AllEmployees = () => {
             <TableHead>
               <TableRow>
                 <TableCell>#</TableCell>
-                <TableCell align="left">First Name</TableCell>
-                <TableCell align="left">Last Name</TableCell>
+                <TableCell
+                  align="left"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => applySorting("firstName", !sorting.ascending)}
+                >
+                  First Name
+                </TableCell>
+                <TableCell
+                  align="left"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => applySorting("lastName", !sorting.ascending)}
+                >
+                  Last Name
+                </TableCell>
                 <TableCell align="left">Gender</TableCell>
                 <TableCell align="left">EmploymentDate</TableCell>
                 <TableCell align="left">TerminationDate</TableCell>
