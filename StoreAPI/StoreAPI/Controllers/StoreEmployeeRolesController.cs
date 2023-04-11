@@ -29,6 +29,7 @@ namespace StoreAPI.Controllers
 
             return await _context.StoreEmployeeRoles
                 .Select(x => EmployeeRoleToDTO(x))
+                .Take(10)
                 .ToListAsync();
         }
 
@@ -47,6 +48,23 @@ namespace StoreAPI.Controllers
                 return NotFound();
 
             return employeeRole;
+        }
+
+        // GET: api/StoreEmployeeRoles/Search?query=test
+        [HttpGet("search/{query}")]
+        public async Task<ActionResult<IEnumerable<StoreEmployeeRoleDTO>>> SearchStoreEmployeeRoles(string query)
+        {
+            if (_context.StoreEmployeeRoles == null)
+                return NotFound();
+
+            if (query.Length < 3)
+                return NotFound();
+
+            return await _context.StoreEmployeeRoles
+                .Where(x => x.Name != null && x.Name.ToLower().Contains(query.ToLower()))
+                .Select(x => EmployeeRoleToDTO(x))
+                .Take(10)
+                .ToListAsync();
         }
 
         // PUT: api/StoreEmployeeRoles/5

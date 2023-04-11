@@ -11,6 +11,7 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
+    Autocomplete,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -38,6 +39,8 @@ export const EmployeeUpdate = () => {
 
         storeEmployeeRoleId: 1,
     });
+
+    const [searchString, setSearchString] = useState("");
 
     useEffect(() => {
         const fetchEmployeeRoles = async () => {
@@ -104,6 +107,31 @@ export const EmployeeUpdate = () => {
         event.preventDefault();
         navigate("/employees");
     };
+
+    useEffect(() => {
+        const fetchEmployeeRolesBySearchString = async () => {
+            try {
+                const response = await fetch(
+                    `${BACKEND_API_URL}/storeemployeeroles/search?query=${searchString}`
+                );
+                const data = await response.json();
+                console.log(data);
+                setEmployeeRoles(data);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            if (searchString.length < 3) return;
+
+            fetchEmployeeRolesBySearchString();
+        }, 500);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [searchString]);
 
     return (
         <Container>
@@ -227,16 +255,18 @@ export const EmployeeUpdate = () => {
                             }
                         />
 
-                        <FormControl fullWidth>
-                            <InputLabel id="roleLabel">Role</InputLabel>
-                            <Select
-                                labelId="roleLabel"
+                        <FormControl fullWidth sx={{ mb: 2 }}>
+                            <Autocomplete
                                 id="storeEmployeeRoleId"
-                                label="Role"
-                                value={employee.storeEmployeeRoleId}
-                                variant="outlined"
-                                fullWidth
-                                sx={{ mb: 2 }}
+                                options={employeeRoles}
+                                value={employeeRoles.find(
+                                    (role) =>
+                                        role.id === employee.storeEmployeeRoleId
+                                )}
+                                getOptionLabel={(option) => option.name}
+                                onInputChange={(event, value) =>
+                                    setSearchString(value)
+                                }
                                 onChange={(event) =>
                                     setEmployee({
                                         ...employee,
@@ -245,13 +275,14 @@ export const EmployeeUpdate = () => {
                                         ),
                                     })
                                 }
-                            >
-                                {employeeRoles.map((role) => (
-                                    <MenuItem key={role.id} value={role.id}>
-                                        {role.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Role"
+                                        variant="outlined"
+                                    />
+                                )}
+                            />
                         </FormControl>
                     </form>
                 </CardContent>

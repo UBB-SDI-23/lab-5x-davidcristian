@@ -36,7 +36,7 @@ def create_employee_roles_csv():
 
         for i in range(1, EMPLOYEE_ROLES_COUNT + 1):
             role_name = fake.job()
-            role_desc = f"{role_name} description"
+            role_desc = "\n".join(fake.paragraphs(nb=3))
             role_level = random.randint(MIN_ROLE_LEVEL, MAX_ROLE_LEVEL)
 
             writer.writerow([i, role_name, role_desc, role_level])
@@ -89,7 +89,7 @@ def create_stores_csv():
 
         for i in range(1, STORES_COUNT + 1):
             store_name = f"{fake.company()} Store"
-            store_desc = f"{store_name} description"
+            store_desc = "\n".join(fake.paragraphs(nb=3))
             category = random.choice(categories).value
             address = fake.street_address()
             city = fake.city()
