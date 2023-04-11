@@ -20,6 +20,19 @@ namespace StoreAPI.Controllers
             _context = context;
         }
 
+        // GET: api/StoreEmployeeRoles/0/10
+        [HttpGet("{page}/{pageSize}")]
+        public async Task<ActionResult<IEnumerable<StoreEmployeeRole>>> GetStoreEmployeeRoles(int page = 0, int pageSize = 10)
+        {
+            if (_context.StoreEmployeeRoles == null)
+                return NotFound();
+
+            return await _context.StoreEmployeeRoles
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
         // GET: api/StoreEmployeeRoles
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StoreEmployeeRoleDTO>>> GetStoreEmployeeRoles()
@@ -29,7 +42,6 @@ namespace StoreAPI.Controllers
 
             return await _context.StoreEmployeeRoles
                 .Select(x => EmployeeRoleToDTO(x))
-                .Take(10)
                 .ToListAsync();
         }
 
@@ -50,8 +62,8 @@ namespace StoreAPI.Controllers
             return employeeRole;
         }
 
-        // GET: api/StoreEmployeeRoles/Search?query=test
-        [HttpGet("search/{query}")]
+        // GET: api/StoreEmployeeRoles/Search?query=Trainee
+        [HttpGet("Search")]
         public async Task<ActionResult<IEnumerable<StoreEmployeeRoleDTO>>> SearchStoreEmployeeRoles(string query)
         {
             if (_context.StoreEmployeeRoles == null)

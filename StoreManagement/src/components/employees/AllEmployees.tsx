@@ -30,6 +30,7 @@ export const AllEmployees = () => {
     const pageSize = 5;
     const [pageIndex, setPageIndex] = useState(0);
     const [hasNextPage, setHasNextPage] = useState(true);
+    const [pageText, setPageText] = useState("1");
 
     const [sorting, setSorting] = useState({
         key: "column name",
@@ -65,6 +66,7 @@ export const AllEmployees = () => {
 
     useEffect(() => {
         setLoading(true);
+        setPageText((pageIndex + 1).toString());
 
         // TODO: fix redundant request
         fetchEmployees(pageIndex)
@@ -88,19 +90,17 @@ export const AllEmployees = () => {
     }
 
     function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-        // TODO: this function
-        const value = event.target.value;
-        const intValue = parseInt(value, 10);
-
-        if (intValue > 0) {
-            setPageIndex(intValue - 1);
-        }
+        const value = event.target.value.replace(/[^\d]/g, "");
+        setPageText(value);
     }
 
     function handleInputKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
-        // TODO: this function
         if (event.key === "Enter") {
-            setPageIndex(0);
+            const intValue = parseInt(pageText, 10);
+
+            if (intValue > 0 && intValue <= 9999999) {
+                setPageIndex(intValue - 1);
+            }
         }
     }
 
@@ -145,6 +145,7 @@ export const AllEmployees = () => {
                                     style={{
                                         cursor: "pointer",
                                         whiteSpace: "nowrap",
+                                        userSelect: "none",
                                     }}
                                     onClick={() =>
                                         applySorting(
@@ -162,6 +163,7 @@ export const AllEmployees = () => {
                                     style={{
                                         cursor: "pointer",
                                         whiteSpace: "nowrap",
+                                        userSelect: "none",
                                     }}
                                     onClick={() =>
                                         applySorting(
@@ -176,37 +178,55 @@ export const AllEmployees = () => {
                                 </TableCell>
                                 <TableCell
                                     align="left"
-                                    style={{ whiteSpace: "nowrap" }}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
                                 >
                                     Gender
                                 </TableCell>
                                 <TableCell
                                     align="left"
-                                    style={{ whiteSpace: "nowrap" }}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
                                 >
                                     Employment Date
                                 </TableCell>
                                 <TableCell
                                     align="left"
-                                    style={{ whiteSpace: "nowrap" }}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
                                 >
                                     Termination Date
                                 </TableCell>
                                 <TableCell
                                     align="left"
-                                    style={{ whiteSpace: "nowrap" }}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
                                 >
                                     Salary
                                 </TableCell>
                                 <TableCell
                                     align="left"
-                                    style={{ whiteSpace: "nowrap" }}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
                                 >
                                     Role
                                 </TableCell>
                                 <TableCell
                                     align="center"
-                                    style={{ whiteSpace: "nowrap" }}
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
                                 >
                                     Operations
                                 </TableCell>
@@ -302,7 +322,7 @@ export const AllEmployees = () => {
                         {`Page `}
                     </p>
                     <TextField
-                        value={pageIndex + 1}
+                        value={pageText}
                         type="text"
                         inputProps={{ min: 1, style: { textAlign: "center" } }}
                         onChange={handleInputChange}

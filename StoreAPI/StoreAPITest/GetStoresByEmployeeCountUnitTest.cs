@@ -146,7 +146,7 @@ namespace StoreAPITest
 
             var controller = new StoresController(_contextMock.Object);
 
-            var shifts = await controller.GetStoresByEmployeeCount();
+            var shifts = await controller.TestGetStoresByEmployeeCount();
 
             Assert.That(shifts.Count, Is.EqualTo(3));
             Assert.That(shifts[0].Id, Is.EqualTo(2));

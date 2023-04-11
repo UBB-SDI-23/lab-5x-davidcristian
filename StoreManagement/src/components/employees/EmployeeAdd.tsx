@@ -9,17 +9,17 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
+    Autocomplete,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
 import { Employee, Gender } from "../../models/Employee";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios, { AxiosError } from "axios";
 import { EmployeeRole } from "../../models/EmployeeRole";
+import { debounce } from "lodash";
 
 export const EmployeeAdd = () => {
     const navigate = useNavigate();
@@ -61,7 +61,7 @@ export const EmployeeAdd = () => {
         const fetchEmployeeRoles = async () => {
             try {
                 const response = await fetch(
-                    `${BACKEND_API_URL}/storeemployeeroles/`
+                    `${BACKEND_API_URL}/storeemployeeroles/0/10`
                 );
                 const data = await response.json();
                 setEmployeeRoles(data);
@@ -71,6 +71,42 @@ export const EmployeeAdd = () => {
         };
         fetchEmployeeRoles();
     }, []);
+
+    const fetchSuggestions = async (query: string) => {
+        try {
+            const response = await axios.get<EmployeeRole[]>(
+                `${BACKEND_API_URL}/storeemployeeroles/Search?query=${query}`
+            );
+            const data = await response.data;
+            const removedDupes = data.filter(
+                (v, i, a) => a.findIndex((v2) => v2.name === v.name) === i
+            );
+
+            setEmployeeRoles(removedDupes);
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+        }
+    };
+
+    const debouncedFetchSuggestions = useCallback(
+        debounce(fetchSuggestions, 250),
+        []
+    );
+
+    useEffect(() => {
+        return () => {
+            debouncedFetchSuggestions.cancel();
+        };
+    }, [debouncedFetchSuggestions]);
+
+    const handleInputChange = (event: any, value: any, reason: any) => {
+        if (value.length < 3) return;
+        console.log("input", value, reason);
+
+        if (reason === "input") {
+            debouncedFetchSuggestions(value);
+        }
+    };
 
     return (
         <Container>
@@ -83,7 +119,7 @@ export const EmployeeAdd = () => {
                     >
                         <ArrowBackIcon />
                     </IconButton>{" "}
-                    <form onSubmit={addEmployee}>
+                    <form id="addEmployeeForm" onSubmit={addEmployee}>
                         <TextField
                             id="firstName"
                             label="First Name"
@@ -117,7 +153,6 @@ export const EmployeeAdd = () => {
                                 labelId="genderLabel"
                                 id="gender"
                                 label="Gender"
-                                value={employee.gender}
                                 variant="outlined"
                                 fullWidth
                                 sx={{ mb: 2 }}
@@ -189,37 +224,47 @@ export const EmployeeAdd = () => {
                             }
                         />
 
-                        <FormControl fullWidth>
-                            <InputLabel id="roleLabel">Role</InputLabel>
-                            <Select
-                                labelId="roleLabel"
-                                id="storeEmployeeRoleId"
-                                label="Role"
-                                value={employee.storeEmployeeRoleId}
-                                variant="outlined"
-                                fullWidth
-                                sx={{ mb: 2 }}
-                                onChange={(event) =>
+                        <Autocomplete
+                            id="storeEmployeeRoleId"
+                            options={employeeRoles}
+                            getOptionLabel={(option) => option.name}
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.id}>
+                                        {option.name}
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Role"
+                                    variant="outlined"
+                                />
+                            )}
+                            filterOptions={(x) => x}
+                            onInputChange={handleInputChange}
+                            onChange={(event, value) => {
+                                if (value) {
+                                    console.log(value);
                                     setEmployee({
                                         ...employee,
-                                        storeEmployeeRoleId: Number(
-                                            event.target.value
-                                        ),
-                                    })
+                                        storeEmployeeRoleId: value.id,
+                                    });
                                 }
-                            >
-                                {employeeRoles.map((role) => (
-                                    <MenuItem key={role.id} value={role.id}>
-                                        {role.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <Button type="submit">Add Employee</Button>
+                            }}
+                        />
                     </form>
                 </CardContent>
-                <CardActions></CardActions>
+                <CardActions>
+                    <Button
+                        sx={{ ml: 1, pb: 1 }}
+                        type="submit"
+                        form="addEmployeeForm"
+                    >
+                        Add Employee
+                    </Button>
+                </CardActions>
             </Card>
         </Container>
     );

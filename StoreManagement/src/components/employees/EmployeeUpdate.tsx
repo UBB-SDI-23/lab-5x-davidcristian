@@ -3,7 +3,6 @@ import {
     Card,
     CardActions,
     CardContent,
-    CircularProgress,
     Container,
     IconButton,
     TextField,
@@ -13,13 +12,14 @@ import {
     InputLabel,
     Autocomplete,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios, { AxiosError } from "axios";
 import { Employee, Gender } from "../../models/Employee";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
 import { EmployeeRole } from "../../models/EmployeeRole";
+import { debounce } from "lodash";
 
 export const EmployeeUpdate = () => {
     const [employeeRoles, setEmployeeRoles] = useState<EmployeeRole[]>([]);
@@ -40,29 +40,29 @@ export const EmployeeUpdate = () => {
         storeEmployeeRoleId: 1,
     });
 
-    const [searchString, setSearchString] = useState("");
+    const employeeRole = useRef<EmployeeRole>({
+        name: "",
+        description: "",
 
-    useEffect(() => {
-        const fetchEmployeeRoles = async () => {
-            try {
-                const response = await fetch(
-                    `${BACKEND_API_URL}/storeemployeeroles/`
-                );
-                const data = await response.json();
-                setEmployeeRoles(data);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        fetchEmployeeRoles();
-    }, []);
+        roleLevel: 0,
+    });
 
     useEffect(() => {
         const fetchEmployee = async () => {
             const response = await fetch(
                 `${BACKEND_API_URL}/storeemployees/${employeeId}/`
             );
+
             const employee = await response.json();
+            const fetchedEmployeeRole = {
+                id: employee.storeEmployeeRole.id,
+                name: employee.storeEmployeeRole.name,
+                description: employee.storeEmployeeRole.description,
+                roleLevel: employee.storeEmployeeRole.roleLevel,
+            };
+            employeeRole.current = fetchedEmployeeRole;
+            setEmployeeRoles([employeeRole.current]);
+
             setEmployee({
                 id: employee.id,
                 firstName: employee.firstName,
@@ -76,6 +76,7 @@ export const EmployeeUpdate = () => {
 
                 storeEmployeeRoleId: employee.storeEmployeeRoleId,
             });
+
             setLoading(false);
         };
         fetchEmployee();
@@ -108,30 +109,42 @@ export const EmployeeUpdate = () => {
         navigate("/employees");
     };
 
+    const fetchSuggestions = async (query: string) => {
+        try {
+            const response = await axios.get<EmployeeRole[]>(
+                `${BACKEND_API_URL}/storeemployeeroles/Search?query=${query}`
+            );
+            const data = await response.data;
+            data.unshift(employeeRole.current);
+            const removedDupes = data.filter(
+                (v, i, a) => a.findIndex((v2) => v2.name === v.name) === i
+            );
+
+            setEmployeeRoles(removedDupes);
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+        }
+    };
+
+    const debouncedFetchSuggestions = useCallback(
+        debounce(fetchSuggestions, 250),
+        []
+    );
+
     useEffect(() => {
-        const fetchEmployeeRolesBySearchString = async () => {
-            try {
-                const response = await fetch(
-                    `${BACKEND_API_URL}/storeemployeeroles/search?query=${searchString}`
-                );
-                const data = await response.json();
-                console.log(data);
-                setEmployeeRoles(data);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-
-        const timer = setTimeout(() => {
-            if (searchString.length < 3) return;
-
-            fetchEmployeeRolesBySearchString();
-        }, 500);
-
         return () => {
-            clearTimeout(timer);
+            debouncedFetchSuggestions.cancel();
         };
-    }, [searchString]);
+    }, [debouncedFetchSuggestions]);
+
+    const handleInputChange = (event: any, value: any, reason: any) => {
+        if (value.length < 3) return;
+        console.log("input", value, reason);
+
+        if (reason === "input") {
+            debouncedFetchSuggestions(value);
+        }
+    };
 
     return (
         <Container>
@@ -255,35 +268,39 @@ export const EmployeeUpdate = () => {
                             }
                         />
 
-                        <FormControl fullWidth sx={{ mb: 2 }}>
-                            <Autocomplete
-                                id="storeEmployeeRoleId"
-                                options={employeeRoles}
-                                value={employeeRoles.find(
-                                    (role) =>
-                                        role.id === employee.storeEmployeeRoleId
-                                )}
-                                getOptionLabel={(option) => option.name}
-                                onInputChange={(event, value) =>
-                                    setSearchString(value)
-                                }
-                                onChange={(event) =>
+                        <Autocomplete
+                            id="storeEmployeeRoleId"
+                            options={employeeRoles}
+                            value={employeeRole.current}
+                            getOptionLabel={(option) => option.name}
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.id}>
+                                        {option.name}
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Role"
+                                    variant="outlined"
+                                />
+                            )}
+                            filterOptions={(x) => x}
+                            onInputChange={handleInputChange}
+                            onChange={(event, value) => {
+                                if (value) {
+                                    console.log(value);
+                                    employeeRole.current = value;
+
                                     setEmployee({
                                         ...employee,
-                                        storeEmployeeRoleId: Number(
-                                            event.target.value
-                                        ),
-                                    })
+                                        storeEmployeeRoleId: value.id,
+                                    });
                                 }
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Role"
-                                        variant="outlined"
-                                    />
-                                )}
-                            />
-                        </FormControl>
+                            }}
+                        />
                     </form>
                 </CardContent>
                 <CardActions>

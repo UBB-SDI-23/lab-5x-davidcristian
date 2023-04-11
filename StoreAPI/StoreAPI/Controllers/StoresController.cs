@@ -176,78 +176,6 @@ namespace StoreAPI.Controllers
             return NoContent();
         }
 
-        //// GET: api/Stores/report/salaries
-        //[HttpGet("report/salaries")]
-        //public async Task<List<StoreSalaryReportDTO>> GetStoresByAverageEmployeeSalary()
-        //{
-        //    var a = await (from stores in _context.Stores
-        //                   join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
-        //                   from storeShifts in storeShiftsGroup.DefaultIfEmpty()
-        //                   let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
-        //                   join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
-        //                   from employees in employeesGroup.DefaultIfEmpty()
-        //                   group employees by stores into g
-        //                   select new StoreSalaryReportDTO
-        //                   {
-        //                         Id = g.Key.Id,
-        //                         Name = g.Key.Name,
-        //                         Description = g.Key.Description,
-
-        //                         Category = g.Key.Category,
-        //                         Address = g.Key.Address,
-
-        //                         City = g.Key.City,
-        //                         State = g.Key.State,
-
-        //                         ZipCode = g.Key.ZipCode,
-        //                         Country = g.Key.Country,
-
-        //                         OpenDate = g.Key.OpenDate,
-        //                         CloseDate = g.Key.CloseDate,
-
-        //                         AverageSalary = g.Average(e => e == null ? 0 : e.Salary)
-        //                    }
-        //        ).OrderByDescending(stores => stores.AverageSalary).ToListAsync();
-
-        //    return a;
-        //}
-
-        //// GET: api/Stores/report/headcount
-        //[HttpGet("report/headcount")]
-        //public async Task<List<StoreHeadcountReportDTO>> GetStoresByEmployeeCount()
-        //{
-        //    var a = await (from stores in _context.Stores
-        //                   join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
-        //                   from storeShifts in storeShiftsGroup.DefaultIfEmpty()
-        //                   let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
-        //                   join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
-        //                   from employees in employeesGroup.DefaultIfEmpty()
-        //                   group employees by stores into g
-        //                   select new StoreHeadcountReportDTO
-        //                   {
-        //                       Id = g.Key.Id,
-        //                       Name = g.Key.Name,
-        //                       Description = g.Key.Description,
-
-        //                       Category = g.Key.Category,
-        //                       Address = g.Key.Address,
-
-        //                       City = g.Key.City,
-        //                       State = g.Key.State,
-
-        //                       ZipCode = g.Key.ZipCode,
-        //                       Country = g.Key.Country,
-
-        //                       OpenDate = g.Key.OpenDate,
-        //                       CloseDate = g.Key.CloseDate,
-
-        //                       Headcount = g.Count(e => e != null)
-        //                   }
-        //        ).OrderByDescending(stores => stores.Headcount).ToListAsync();
-
-        //    return a;
-        //}
-
         // GET: api/Stores/report/salaries
         [HttpGet("report/salaries")]
         public async Task<ActionResult<IEnumerable<StoreSalaryReportDTO>>> GetStoresByAverageEmployeeSalary()
@@ -324,6 +252,78 @@ namespace StoreAPI.Controllers
             ).OrderByDescending(stores => stores.Headcount);
 
             return Ok(storeReports);
+        }
+
+        //// GET: api/Stores/test/report/salaries
+        [HttpGet("test/report/salaries")]
+        public async Task<List<StoreSalaryReportDTO>> TestGetStoresByAverageEmployeeSalary()
+        {
+            var a = await (from stores in _context.Stores
+                           join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
+                           from storeShifts in storeShiftsGroup.DefaultIfEmpty()
+                           let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
+                           join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
+                           from employees in employeesGroup.DefaultIfEmpty()
+                           group employees by stores into g
+                           select new StoreSalaryReportDTO
+                           {
+                               Id = g.Key.Id,
+                               Name = g.Key.Name,
+                               Description = g.Key.Description,
+
+                               Category = g.Key.Category,
+                               Address = g.Key.Address,
+
+                               City = g.Key.City,
+                               State = g.Key.State,
+
+                               ZipCode = g.Key.ZipCode,
+                               Country = g.Key.Country,
+
+                               OpenDate = g.Key.OpenDate,
+                               CloseDate = g.Key.CloseDate,
+
+                               AverageSalary = g.Average(e => e == null ? 0 : e.Salary)
+                           }
+                ).OrderByDescending(stores => stores.AverageSalary).ToListAsync();
+
+            return a;
+        }
+
+        //// GET: api/Stores/test/report/headcount
+        [HttpGet("test/report/headcount")]
+        public async Task<List<StoreHeadcountReportDTO>> TestGetStoresByEmployeeCount()
+        {
+            var a = await (from stores in _context.Stores
+                           join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
+                           from storeShifts in storeShiftsGroup.DefaultIfEmpty()
+                           let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
+                           join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
+                           from employees in employeesGroup.DefaultIfEmpty()
+                           group employees by stores into g
+                           select new StoreHeadcountReportDTO
+                           {
+                               Id = g.Key.Id,
+                               Name = g.Key.Name,
+                               Description = g.Key.Description,
+
+                               Category = g.Key.Category,
+                               Address = g.Key.Address,
+
+                               City = g.Key.City,
+                               State = g.Key.State,
+
+                               ZipCode = g.Key.ZipCode,
+                               Country = g.Key.Country,
+
+                               OpenDate = g.Key.OpenDate,
+                               CloseDate = g.Key.CloseDate,
+
+                               Headcount = g.Count(e => e != null)
+                           }
+                ).OrderByDescending(stores => stores.Headcount).ToListAsync();
+
+            return a;
         }
 
         private bool StoreExists(long id)
