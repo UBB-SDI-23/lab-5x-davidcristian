@@ -2,25 +2,25 @@ import { EmployeeRole } from "./EmployeeRole";
 import { StoreShift } from "./StoreShift";
 
 export enum Gender {
-  Female,
-  Male,
-  Other,
+    Female,
+    Male,
+    Other,
 }
 
 export interface Employee {
-  id?: number;
-  firstName: string;
-  lastName: string;
+    id?: number;
+    firstName: string;
+    lastName: string;
 
-  gender: Gender;
+    gender: Gender;
 
-  employmentDate?: string;
-  terminationDate?: string;
-  salary: number;
+    employmentDate?: string;
+    terminationDate?: string;
+    salary: number;
 
-  storeEmployeeRoleId?: number;
+    storeEmployeeRoleId?: number;
 
-  storeEmployeeRole?: EmployeeRole;
-  storeShifts?: StoreShift[];
-  [key: string]: any;
+    storeEmployeeRole?: EmployeeRole;
+    storeShifts?: StoreShift[];
+    [key: string]: any;
 }

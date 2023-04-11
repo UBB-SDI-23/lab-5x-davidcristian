@@ -16,8 +16,13 @@ namespace StoreAPI
                 .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
                 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
             ;
+
+            var connectionString = builder.Configuration.GetConnectionString("LocalStoreDatabase");
+            if (string.IsNullOrEmpty(connectionString))
+                connectionString = builder.Configuration.GetConnectionString("StoreDatabase");
+
             builder.Services.AddDbContext<StoreContext>(opt => opt
-                .UseSqlServer(builder.Configuration.GetConnectionString("StoreDatabase"))
+                .UseSqlServer(connectionString)
                 //.UseLazyLoadingProxies()
             );
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

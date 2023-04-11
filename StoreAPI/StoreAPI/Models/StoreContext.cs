@@ -24,11 +24,6 @@ namespace StoreAPI.Models
             base.OnModelCreating(modelBuilder);
 
             // Define one-to-many relationships
-            modelBuilder.Entity<StoreItem>()
-                .HasOne(s => s.StoreItemCategory)
-                .WithMany(g => g.StoreItems)
-                .HasForeignKey(s => s.StoreItemCategoryId);
-
             modelBuilder.Entity<StoreEmployee>()
                 .HasOne(s => s.StoreEmployeeRole)
                 .WithMany(g => g.StoreEmployees)
@@ -48,9 +43,6 @@ namespace StoreAPI.Models
                 .WithMany(t => t.StoreShifts)
                 .HasForeignKey(pt => pt.StoreEmployeeId);
         }
-
-        public virtual DbSet<StoreItemCategory> StoreItemCategories { get; set; } = null!;
-        public virtual DbSet<StoreItem> StoreItems { get; set; } = null!;
 
         public virtual DbSet<StoreEmployeeRole> StoreEmployeeRoles { get; set; } = null!;
         public virtual DbSet<StoreEmployee> StoreEmployees { get; set; } = null!;

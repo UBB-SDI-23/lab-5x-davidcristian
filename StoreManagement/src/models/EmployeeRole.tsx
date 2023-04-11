@@ -1,11 +1,11 @@
 import { Employee } from "./Employee";
 
 export interface EmployeeRole {
-  id?: number;
-  name: string;
-  description: string;
+    id?: number;
+    name: string;
+    description: string;
 
-  roleLevel: number;
+    roleLevel: number;
 
-  storeEmployees?: Employee[];
+    storeEmployees?: Employee[];
 }

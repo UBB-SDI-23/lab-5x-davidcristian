@@ -16,33 +16,36 @@ import { EmployeeUpdate } from "./components/employees/EmployeeUpdate";
 import { ShowStoreSalaryReport } from "./components/employees/ShowStoreSalaryReport";
 
 function App() {
-  return (
-    <React.Fragment>
-      <Router>
-        <AppMenu />
+    return (
+        <React.Fragment>
+            <Router>
+                <AppMenu />
 
-        <Routes>
-          <Route path="/" element={<AppHome />} />
-          <Route path="/employees" element={<AllEmployees />} />
-          <Route path="/salaryreport" element={<ShowStoreSalaryReport />} />
+                <Routes>
+                    <Route path="/" element={<AppHome />} />
+                    <Route path="/employees" element={<AllEmployees />} />
+                    <Route
+                        path="/salaryreport"
+                        element={<ShowStoreSalaryReport />}
+                    />
 
-          <Route
-            path="/employees/:employeeId/details"
-            element={<EmployeeDetails />}
-          />
-          <Route
-            path="/employees/:employeeId/edit"
-            element={<EmployeeUpdate />}
-          />
-          <Route
-            path="/employees/:employeeId/delete"
-            element={<EmployeeDelete />}
-          />
-          <Route path="/employees/add" element={<EmployeeAdd />} />
-        </Routes>
-      </Router>
-    </React.Fragment>
-  );
+                    <Route
+                        path="/employees/:employeeId/details"
+                        element={<EmployeeDetails />}
+                    />
+                    <Route
+                        path="/employees/:employeeId/edit"
+                        element={<EmployeeUpdate />}
+                    />
+                    <Route
+                        path="/employees/:employeeId/delete"
+                        element={<EmployeeDelete />}
+                    />
+                    <Route path="/employees/add" element={<EmployeeAdd />} />
+                </Routes>
+            </Router>
+        </React.Fragment>
+    );
 }
 
 export default App;

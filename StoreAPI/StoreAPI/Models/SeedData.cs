@@ -8,77 +8,6 @@ namespace StoreAPI.Models;
 
 public static class SeedData
 {
-    private static Dictionary<string, string> itemsDescriptions = new Dictionary<string, string>
-    {
-        { "Apple", "A red apple." },
-        { "Laptop", "A laptop computer." },
-        { "Screwdriver", "A screwdriver." },
-        { "T-Shirt", "A t-shirt." },
-        { "Teddy Bear", "A teddy bear." },
-        { "Harry Potter", "A Harry Potter book." },
-        { "Star Wars", "A Star Wars movie." },
-        { "Guitar", "A guitar." },
-        { "Monopoly", "A Monopoly game." },
-        { "Baseball", "A baseball." }
-    };
-
-    private static Dictionary<string, string> categoryDescriptions = new Dictionary<string, string>
-    {
-        { "Food", "Food items." },
-        { "Electronics", "Electronics items." },
-        { "Misc", "Miscellaneous items." },
-        { "Clothing", "Clothing items." },
-        { "Toys", "Toys." },
-        { "Books", "Books." },
-        { "Movies", "Movies." },
-        { "Music", "Music." },
-        { "Games", "Games." },
-        { "Sports", "Sports items." }
-    };
-
-    private static void SeedItemCategories(StoreContext context)
-    {
-        if (context.StoreItemCategories.Any())
-            return;
-
-        context.StoreItemCategories.AddRange(
-            Enumerable.Range(0, categoryDescriptions.Count).Select(x => new StoreItemCategory
-            {
-                Name = categoryDescriptions.Keys.ElementAt(x),
-                Description = categoryDescriptions.Values.ElementAt(x),
-            })
-        );
-
-        context.SaveChanges();
-    }
-
-    private static void SeedItems(StoreContext context)
-    {
-        if (context.StoreItems.Any())
-            return;
-
-        var categories = context.StoreItemCategories.ToList();
-        if (categories.Count == 0)
-            throw new Exception("No categories found.");
-
-        Func<StoreItemCategory> randomCategory = () => categories[new Random().Next(0, categories.Count)];
-
-        context.StoreItems.AddRange(
-            Enumerable.Range(1, itemsDescriptions.Count).Select(x => new StoreItem
-            {
-                Name = itemsDescriptions.Keys.ElementAt(x - 1),
-                Description = itemsDescriptions.Values.ElementAt(x - 1),
-                Image = "https://picsum.photos/200",
-                Price = x * 1.99,
-                Stock = x * 10,
-                StoreItemCategory = randomCategory(),
-                FavoriteCount = x * 5
-            })
-        );
-
-        context.SaveChanges();
-    }
-
     private static void SeedEmployeeRoles(StoreContext context)
     {
         if (context.StoreEmployeeRoles.Any())
@@ -482,9 +411,6 @@ public static class SeedData
     {
         using (var context = new StoreContext(serviceProvider.GetRequiredService<DbContextOptions<StoreContext>>()))
         {
-            SeedItemCategories(context);
-            SeedItems(context);
-
             SeedEmployeeRoles(context);
             SeedEmployees(context);
 

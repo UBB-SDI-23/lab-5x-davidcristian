@@ -23,6 +23,20 @@ namespace StoreAPI.Controllers
             _validator = new StoreEmployeeValidator();
         }
 
+        // GET: api/StoreEmployees/0/10
+        [HttpGet("{page}/{pageSize}")]
+        public async Task<ActionResult<IEnumerable<StoreEmployee>>> GetStoreEmployee(int page = 0, int pageSize = 10)
+        {
+            if (_context.StoreEmployees == null)
+                return NotFound();
+
+            return await _context.StoreEmployees
+                .Include(x => x.StoreEmployeeRole)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
         // GET: api/StoreEmployees
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StoreEmployee>>> GetStoreEmployee()
