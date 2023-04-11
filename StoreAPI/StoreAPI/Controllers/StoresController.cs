@@ -254,7 +254,7 @@ namespace StoreAPI.Controllers
             return Ok(storeReports);
         }
 
-        //// GET: api/Stores/test/report/salaries
+        // GET: api/Stores/test/report/salaries
         [HttpGet("test/report/salaries")]
         public async Task<List<StoreSalaryReportDTO>> TestGetStoresByAverageEmployeeSalary()
         {
@@ -290,7 +290,7 @@ namespace StoreAPI.Controllers
             return a;
         }
 
-        //// GET: api/Stores/test/report/headcount
+        // GET: api/Stores/test/report/headcount
         [HttpGet("test/report/headcount")]
         public async Task<List<StoreHeadcountReportDTO>> TestGetStoresByEmployeeCount()
         {

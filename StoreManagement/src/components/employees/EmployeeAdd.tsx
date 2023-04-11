@@ -1,4 +1,5 @@
 import {
+    Box,
     Button,
     Card,
     CardActions,
@@ -110,15 +111,27 @@ export const EmployeeAdd = () => {
 
     return (
         <Container>
-            <Card>
+            <Card sx={{ p: 2 }}>
                 <CardContent>
-                    <IconButton
-                        component={Link}
-                        sx={{ mr: 3 }}
-                        to={`/employees`}
-                    >
-                        <ArrowBackIcon />
-                    </IconButton>{" "}
+                    <Box display="flex" alignItems="flex-start" sx={{ mb: 4 }}>
+                        <IconButton
+                            component={Link}
+                            sx={{ mb: 2, mr: 3 }}
+                            to={`/employees`}
+                        >
+                            <ArrowBackIcon />
+                        </IconButton>
+                        <h1
+                            style={{
+                                flex: 1,
+                                textAlign: "center",
+                                marginLeft: -64,
+                                marginTop: -4,
+                            }}
+                        >
+                            Add Employee
+                        </h1>
+                    </Box>
                     <form id="addEmployeeForm" onSubmit={addEmployee}>
                         <TextField
                             id="firstName"
@@ -256,9 +269,9 @@ export const EmployeeAdd = () => {
                         />
                     </form>
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
                     <Button
-                        sx={{ ml: 1, pb: 1 }}
+                        variant="contained"
                         type="submit"
                         form="addEmployeeForm"
                     >

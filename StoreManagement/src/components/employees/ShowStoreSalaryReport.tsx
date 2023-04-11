@@ -43,11 +43,31 @@ export const ShowStoreSalaryReport = () => {
                     <Table sx={{ minWidth: 900 }} aria-label="simple table">
                         <TableHead>
                             <TableRow>
-                                <TableCell>#</TableCell>
-                                <TableCell align="left">Name</TableCell>
-                                <TableCell align="left">Description</TableCell>
-                                <TableCell align="left">Category</TableCell>
-                                <TableCell align="left">
+                                <TableCell style={{ userSelect: "none" }}>
+                                    #
+                                </TableCell>
+                                <TableCell
+                                    style={{ userSelect: "none" }}
+                                    align="left"
+                                >
+                                    Name
+                                </TableCell>
+                                <TableCell
+                                    style={{ userSelect: "none" }}
+                                    align="left"
+                                >
+                                    Description
+                                </TableCell>
+                                <TableCell
+                                    style={{ userSelect: "none" }}
+                                    align="left"
+                                >
+                                    Category
+                                </TableCell>
+                                <TableCell
+                                    style={{ userSelect: "none" }}
+                                    align="left"
+                                >
                                     Average Salary
                                 </TableCell>
                             </TableRow>

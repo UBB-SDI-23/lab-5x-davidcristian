@@ -29,7 +29,6 @@ export const AllEmployees = () => {
 
     const pageSize = 5;
     const [pageIndex, setPageIndex] = useState(0);
-    const [hasNextPage, setHasNextPage] = useState(true);
     const [pageText, setPageText] = useState("1");
 
     const [sorting, setSorting] = useState({
@@ -68,17 +67,10 @@ export const AllEmployees = () => {
         setLoading(true);
         setPageText((pageIndex + 1).toString());
 
-        // TODO: fix redundant request
-        fetchEmployees(pageIndex)
-            .then((data) => {
-                setEmployees(data);
-            })
-            .then(() => {
-                fetchEmployees(pageIndex + 1).then((data) => {
-                    setHasNextPage(data.length > 0);
-                    setLoading(false);
-                });
-            });
+        fetchEmployees(pageIndex).then((data) => {
+            setEmployees(data);
+            setLoading(false);
+        });
     }, [pageIndex, pageSize]);
 
     function handleNextPage() {
@@ -106,40 +98,40 @@ export const AllEmployees = () => {
 
     return (
         <Container>
-            <h1>All employees</h1>
+            <h1
+                style={{
+                    paddingTop: 26,
+                    marginBottom: 4,
+                    textAlign: "center",
+                }}
+            >
+                All Employees
+            </h1>
 
             {loading && <CircularProgress />}
-            {!loading && employees.length === 0 && <p>No employees found</p>}
             {!loading && (
-                <Box display="flex">
-                    <IconButton
-                        component={Link}
-                        sx={{ mb: 3 }}
-                        to={`/employees/add`}
-                    >
-                        <Tooltip title="Add a new employee" arrow>
-                            <AddIcon color="primary" />
-                        </Tooltip>
-                    </IconButton>
-                    <p
-                        style={{
-                            margin: 0,
-                            marginTop: 8,
-                            padding: 0,
-                            fontWeight: "bold",
-                            color: "#1976d2",
-                        }}
-                    >
-                        {`Create`}
-                    </p>
-                </Box>
+                <Button
+                    component={Link}
+                    to={`/employees/add`}
+                    variant="text"
+                    size="large"
+                    sx={{ mb: 2, textTransform: "none" }}
+                    startIcon={<AddIcon />}
+                >
+                    Create
+                </Button>
+            )}
+            {!loading && employees.length === 0 && (
+                <p style={{ marginLeft: 16 }}>No employees found.</p>
             )}
             {!loading && employees.length > 0 && (
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
                             <TableRow>
-                                <TableCell>#</TableCell>
+                                <TableCell style={{ userSelect: "none" }}>
+                                    #
+                                </TableCell>
                                 <TableCell
                                     align="left"
                                     style={{
@@ -262,6 +254,7 @@ export const AllEmployees = () => {
                                     <TableCell align="center">
                                         <Box
                                             display="flex"
+                                            alignItems="flex-start"
                                             justifyContent="center"
                                         >
                                             <IconButton
@@ -277,6 +270,7 @@ export const AllEmployees = () => {
                                             </IconButton>
                                             <IconButton
                                                 component={Link}
+                                                sx={{ ml: 1, mr: 1 }}
                                                 to={`/employees/${employee.id}/edit`}
                                             >
                                                 <EditIcon />
@@ -317,6 +311,7 @@ export const AllEmployees = () => {
                         style={{
                             marginLeft: 16,
                             marginRight: 8,
+                            userSelect: "none",
                         }}
                     >
                         {`Page `}
@@ -337,7 +332,7 @@ export const AllEmployees = () => {
                     <Button
                         variant="contained"
                         onClick={handleNextPage}
-                        disabled={!hasNextPage}
+                        disabled={employees.length < pageSize}
                     >
                         &gt;
                     </Button>

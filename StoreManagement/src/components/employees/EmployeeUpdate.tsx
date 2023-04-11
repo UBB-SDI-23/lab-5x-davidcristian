@@ -1,6 +1,8 @@
 import {
+    Box,
     Button,
     Card,
+    CircularProgress,
     CardActions,
     CardContent,
     Container,
@@ -148,176 +150,203 @@ export const EmployeeUpdate = () => {
 
     return (
         <Container>
-            <Card>
-                <CardContent>
-                    <IconButton
-                        component={Link}
-                        sx={{ mr: 3 }}
-                        to={`/employees`}
-                    >
-                        <ArrowBackIcon />
-                    </IconButton>{" "}
-                    <form onSubmit={handleUpdate}>
-                        <TextField
-                            id="firstName"
-                            label="First Name"
-                            value={employee.firstName}
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            onChange={(event) =>
-                                setEmployee({
-                                    ...employee,
-                                    firstName: event.target.value,
-                                })
-                            }
-                        />
-                        <TextField
-                            id="lastName"
-                            label="Last Name"
-                            value={employee.lastName}
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            onChange={(event) =>
-                                setEmployee({
-                                    ...employee,
-                                    lastName: event.target.value,
-                                })
-                            }
-                        />
+            {loading && <CircularProgress />}
+            {!loading && (
+                <Card sx={{ p: 2 }}>
+                    <CardContent>
+                        <Box
+                            display="flex"
+                            alignItems="flex-start"
+                            sx={{ mb: 4 }}
+                        >
+                            <IconButton
+                                component={Link}
+                                sx={{ mb: 2, mr: 3 }}
+                                to={`/employees`}
+                            >
+                                <ArrowBackIcon />
+                            </IconButton>
+                            <h1
+                                style={{
+                                    flex: 1,
+                                    textAlign: "center",
+                                    marginLeft: -64,
+                                    marginTop: -4,
+                                }}
+                            >
+                                Edit Employee
+                            </h1>
+                        </Box>
 
-                        <FormControl fullWidth>
-                            <InputLabel id="genderLabel">Gender</InputLabel>
-                            <Select
-                                labelId="genderLabel"
-                                id="gender"
-                                label="Gender"
-                                value={employee.gender}
+                        <form onSubmit={handleUpdate}>
+                            <TextField
+                                id="firstName"
+                                label="First Name"
+                                value={employee.firstName}
                                 variant="outlined"
                                 fullWidth
                                 sx={{ mb: 2 }}
                                 onChange={(event) =>
                                     setEmployee({
                                         ...employee,
-                                        gender: event.target.value as Gender,
+                                        firstName: event.target.value,
                                     })
                                 }
-                            >
-                                {getEnumValues(Gender).map((genderValue) => (
-                                    <MenuItem
-                                        key={genderValue}
-                                        value={genderValue}
-                                    >
-                                        {Gender[genderValue]}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <TextField
-                            id="employmentDate"
-                            label="Employment Date"
-                            value={employee.employmentDate}
-                            InputLabelProps={{ shrink: true }}
-                            type="datetime-local"
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            onChange={(event) =>
-                                setEmployee({
-                                    ...employee,
-                                    employmentDate: new Date(
-                                        event.target.value
-                                    ).toISOString(),
-                                })
-                            }
-                        />
-
-                        <TextField
-                            id="terminationDate"
-                            label="Termination Date"
-                            value={employee.terminationDate}
-                            InputLabelProps={{ shrink: true }}
-                            type="datetime-local"
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            onChange={(event) =>
-                                setEmployee({
-                                    ...employee,
-                                    terminationDate: new Date(
-                                        event.target.value
-                                    ).toISOString(),
-                                })
-                            }
-                        />
-
-                        <TextField
-                            id="salary"
-                            label="Salary"
-                            value={employee.salary}
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            onChange={(event) =>
-                                setEmployee({
-                                    ...employee,
-                                    salary: Number(event.target.value),
-                                })
-                            }
-                        />
-
-                        <Autocomplete
-                            id="storeEmployeeRoleId"
-                            options={employeeRoles}
-                            value={employeeRole.current}
-                            getOptionLabel={(option) => option.name}
-                            renderOption={(props, option) => {
-                                return (
-                                    <li {...props} key={option.id}>
-                                        {option.name}
-                                    </li>
-                                );
-                            }}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Role"
-                                    variant="outlined"
-                                />
-                            )}
-                            filterOptions={(x) => x}
-                            onInputChange={handleInputChange}
-                            onChange={(event, value) => {
-                                if (value) {
-                                    console.log(value);
-                                    employeeRole.current = value;
-
+                            />
+                            <TextField
+                                id="lastName"
+                                label="Last Name"
+                                value={employee.lastName}
+                                variant="outlined"
+                                fullWidth
+                                sx={{ mb: 2 }}
+                                onChange={(event) =>
                                     setEmployee({
                                         ...employee,
-                                        storeEmployeeRoleId: value.id,
-                                    });
+                                        lastName: event.target.value,
+                                    })
                                 }
-                            }}
-                        />
-                    </form>
-                </CardContent>
-                <CardActions>
-                    <CardActions sx={{ justifyContent: "center" }}>
+                            />
+
+                            <FormControl fullWidth>
+                                <InputLabel id="genderLabel">Gender</InputLabel>
+                                <Select
+                                    labelId="genderLabel"
+                                    id="gender"
+                                    label="Gender"
+                                    value={employee.gender}
+                                    variant="outlined"
+                                    fullWidth
+                                    sx={{ mb: 2 }}
+                                    onChange={(event) =>
+                                        setEmployee({
+                                            ...employee,
+                                            gender: event.target
+                                                .value as Gender,
+                                        })
+                                    }
+                                >
+                                    {getEnumValues(Gender).map(
+                                        (genderValue) => (
+                                            <MenuItem
+                                                key={genderValue}
+                                                value={genderValue}
+                                            >
+                                                {Gender[genderValue]}
+                                            </MenuItem>
+                                        )
+                                    )}
+                                </Select>
+                            </FormControl>
+
+                            <TextField
+                                id="employmentDate"
+                                label="Employment Date"
+                                value={employee.employmentDate}
+                                InputLabelProps={{ shrink: true }}
+                                type="datetime-local"
+                                variant="outlined"
+                                fullWidth
+                                sx={{ mb: 2 }}
+                                onChange={(event) =>
+                                    setEmployee({
+                                        ...employee,
+                                        employmentDate: new Date(
+                                            event.target.value
+                                        ).toISOString(),
+                                    })
+                                }
+                            />
+
+                            <TextField
+                                id="terminationDate"
+                                label="Termination Date"
+                                value={employee.terminationDate}
+                                InputLabelProps={{ shrink: true }}
+                                type="datetime-local"
+                                variant="outlined"
+                                fullWidth
+                                sx={{ mb: 2 }}
+                                onChange={(event) =>
+                                    setEmployee({
+                                        ...employee,
+                                        terminationDate: new Date(
+                                            event.target.value
+                                        ).toISOString(),
+                                    })
+                                }
+                            />
+
+                            <TextField
+                                id="salary"
+                                label="Salary"
+                                value={employee.salary}
+                                variant="outlined"
+                                fullWidth
+                                sx={{ mb: 2 }}
+                                onChange={(event) =>
+                                    setEmployee({
+                                        ...employee,
+                                        salary: Number(event.target.value),
+                                    })
+                                }
+                            />
+
+                            <Autocomplete
+                                id="storeEmployeeRoleId"
+                                options={employeeRoles}
+                                value={employeeRole.current}
+                                getOptionLabel={(option) => option.name}
+                                renderOption={(props, option) => {
+                                    return (
+                                        <li {...props} key={option.id}>
+                                            {option.name}
+                                        </li>
+                                    );
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Role"
+                                        variant="outlined"
+                                    />
+                                )}
+                                filterOptions={(x) => x}
+                                onInputChange={handleInputChange}
+                                onChange={(event, value) => {
+                                    if (value) {
+                                        console.log(value);
+                                        employeeRole.current = value;
+
+                                        setEmployee({
+                                            ...employee,
+                                            storeEmployeeRoleId: value.id,
+                                        });
+                                    }
+                                }}
+                            />
+                        </form>
+                    </CardContent>
+                    <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
                         <Button
                             type="submit"
                             onClick={handleUpdate}
                             variant="contained"
+                            sx={{ width: 100, mr: 2 }}
                         >
-                            Update
+                            Save
                         </Button>
-                        <Button onClick={handleCancel} variant="contained">
+                        <Button
+                            onClick={handleCancel}
+                            variant="contained"
+                            color="error"
+                            sx={{ width: 100 }}
+                        >
                             Cancel
                         </Button>
                     </CardActions>
-                </CardActions>
-            </Card>
+                </Card>
+            )}
         </Container>
     );
 };
