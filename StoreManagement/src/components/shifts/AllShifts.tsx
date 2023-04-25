@@ -17,63 +17,23 @@ import {
     TextField,
 } from "@mui/material";
 import { BACKEND_API_URL, formatDate } from "../../constants";
-import { Employee, Gender } from "../../models/Employee";
+import { StoreShift } from "../../models/StoreShift";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
 
-export const AllEmployees = () => {
+export const AllShifts = () => {
     const [loading, setLoading] = useState(false);
-    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [shifts, setShifts] = useState<StoreShift[]>([]);
 
     const pageSize = 5;
     const [pageIndex, setPageIndex] = useState(0);
     const [pageText, setPageText] = useState("1");
 
-    const [sorting, setSorting] = useState({
-        key: "column name",
-        ascending: true,
-    });
-
-    function applySorting(key: string, ascending: boolean) {
-        if (key !== sorting.key) {
-            ascending = true;
-        }
-
-        setSorting({ key: key, ascending: ascending });
-    }
-
-    useEffect(() => {
-        if (employees.length === 0) {
-            return;
-        }
-
-        const currentEmployees = [...employees];
-        const sortedCurrentUsers = currentEmployees.sort((a, b) => {
-            // Check if the values are numbers
-            const aVal = a[sorting.key];
-            const bVal = b[sorting.key];
-            const isNumeric = !isNaN(aVal) && !isNaN(bVal);
-
-            // If both values are numbers, use subtraction for comparison
-            if (isNumeric) {
-                return parseFloat(aVal) - parseFloat(bVal);
-            } else {
-                return aVal.localeCompare(bVal);
-            }
-        });
-
-        setEmployees(
-            sorting.ascending
-                ? sortedCurrentUsers
-                : sortedCurrentUsers.reverse()
-        );
-    }, [sorting]);
-
-    function fetchEmployees(page: number): Promise<Employee[]> {
+    function fetchStores(page: number): Promise<StoreShift[]> {
         return fetch(
-            `${BACKEND_API_URL}/storeemployees/${page}/${pageSize}`
+            `${BACKEND_API_URL}/storeshifts/pages/${page}/${pageSize}`
         ).then((response) => response.json());
     }
 
@@ -81,8 +41,8 @@ export const AllEmployees = () => {
         setLoading(true);
         setPageText((pageIndex + 1).toString());
 
-        fetchEmployees(pageIndex).then((data) => {
-            setEmployees(data);
+        fetchStores(pageIndex).then((data) => {
+            setShifts(data);
             setLoading(false);
         });
     }, [pageIndex, pageSize]);
@@ -119,14 +79,14 @@ export const AllEmployees = () => {
                     textAlign: "center",
                 }}
             >
-                All Employees
+                All Shifts
             </h1>
 
             {loading && <CircularProgress />}
             {!loading && (
                 <Button
                     component={Link}
-                    to={`/employees/add`}
+                    to={`/shifts/add`}
                     variant="text"
                     size="large"
                     sx={{ mb: 2, textTransform: "none" }}
@@ -135,10 +95,10 @@ export const AllEmployees = () => {
                     Create
                 </Button>
             )}
-            {!loading && employees.length === 0 && (
-                <p style={{ marginLeft: 16 }}>No employees found.</p>
+            {!loading && shifts.length === 0 && (
+                <p style={{ marginLeft: 16 }}>No shifts found.</p>
             )}
-            {!loading && employees.length > 0 && (
+            {!loading && shifts.length > 0 && (
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
@@ -149,38 +109,11 @@ export const AllEmployees = () => {
                                 <TableCell
                                     align="left"
                                     style={{
-                                        cursor: "pointer",
                                         whiteSpace: "nowrap",
                                         userSelect: "none",
                                     }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "firstName",
-                                            !sorting.ascending
-                                        )
-                                    }
                                 >
-                                    First Name
-                                    {sorting.key === "firstName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        cursor: "pointer",
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "lastName",
-                                            !sorting.ascending
-                                        )
-                                    }
-                                >
-                                    Last Name
-                                    {sorting.key === "lastName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
+                                    Employee Name
                                 </TableCell>
                                 <TableCell
                                     align="left"
@@ -189,7 +122,7 @@ export const AllEmployees = () => {
                                         userSelect: "none",
                                     }}
                                 >
-                                    Gender
+                                    Store Name
                                 </TableCell>
                                 <TableCell
                                     align="left"
@@ -198,7 +131,7 @@ export const AllEmployees = () => {
                                         userSelect: "none",
                                     }}
                                 >
-                                    Employment Date
+                                    Start Date
                                 </TableCell>
                                 <TableCell
                                     align="left"
@@ -207,34 +140,7 @@ export const AllEmployees = () => {
                                         userSelect: "none",
                                     }}
                                 >
-                                    Termination Date
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Salary
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Role
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    # of Shifts
+                                    End Date
                                 </TableCell>
                                 <TableCell
                                     align="center"
@@ -248,34 +154,23 @@ export const AllEmployees = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {employees.map((employee, index) => (
-                                <TableRow key={employee.id}>
+                            {shifts.map((shift, index) => (
+                                <TableRow key={index}>
                                     <TableCell component="th" scope="row">
                                         {pageIndex * pageSize + index + 1}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {employee.firstName}
+                                        {shift.storeEmployee.firstName}{" "}
+                                        {shift.storeEmployee.lastName}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {employee.lastName}
+                                        {shift.store.name}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {Gender[employee.gender]}
+                                        {formatDate(shift.startDate)}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {formatDate(employee.employmentDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {formatDate(employee.terminationDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.salary}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.storeEmployeeRole?.name}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.storeShifts?.length}
+                                        {formatDate(shift.endDate)}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box
@@ -285,10 +180,10 @@ export const AllEmployees = () => {
                                         >
                                             <IconButton
                                                 component={Link}
-                                                to={`/employees/${employee.id}/details`}
+                                                to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/details`}
                                             >
                                                 <Tooltip
-                                                    title="View employee details"
+                                                    title="View store details"
                                                     arrow
                                                 >
                                                     <ReadMoreIcon color="primary" />
@@ -297,13 +192,13 @@ export const AllEmployees = () => {
                                             <IconButton
                                                 component={Link}
                                                 sx={{ ml: 1, mr: 1 }}
-                                                to={`/employees/${employee.id}/edit`}
+                                                to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/edit`}
                                             >
                                                 <EditIcon />
                                             </IconButton>
                                             <IconButton
                                                 component={Link}
-                                                to={`/employees/${employee.id}/delete`}
+                                                to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/delete`}
                                             >
                                                 <DeleteForeverIcon
                                                     sx={{ color: "red" }}
@@ -358,7 +253,7 @@ export const AllEmployees = () => {
                     <Button
                         variant="contained"
                         onClick={handleNextPage}
-                        disabled={employees.length < pageSize}
+                        disabled={shifts.length < pageSize}
                     >
                         &gt;
                     </Button>

@@ -32,6 +32,7 @@ namespace StoreAPI.Controllers
 
             return await _context.StoreEmployees
                 .Include(x => x.StoreEmployeeRole)
+                .Include(x => x.StoreShifts)
                 .Skip(page * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -167,22 +168,30 @@ namespace StoreAPI.Controllers
             if (storeEmployee == null)
                 return NotFound();
 
+            // delete all shifts for this employee
+            var storeShifts = await _context.StoreShifts
+                .Where(x => x.StoreEmployeeId == id)
+                .ToListAsync();
+            if (storeShifts != null)
+                _context.StoreShifts.RemoveRange(storeShifts);
+
             _context.StoreEmployees.Remove(storeEmployee);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // FILTER: api/StoreItems/Filter?minSalary=3000
+        // FILTER: api/StoreEmployees/Filter?minSalary=3000
         [HttpGet("Filter")]
-        public async Task<ActionResult<IEnumerable<StoreEmployeeDTO>>> FilterStoreEmployees(double minSalary)
+        public async Task<ActionResult<IEnumerable<StoreEmployee>>> FilterStoreEmployees(double minSalary)
         {
             if (_context.StoreEmployees == null)
                 return NotFound();
 
             return await _context.StoreEmployees
+                .Include(x => x.StoreEmployeeRole)
                 .Where(x => x.Salary >= minSalary)
-                .Select(x => EmployeeToDTO(x))
+                .Take(100)
                 .ToListAsync();
         }
 

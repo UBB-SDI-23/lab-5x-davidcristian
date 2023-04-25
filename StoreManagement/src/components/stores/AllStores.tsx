@@ -17,72 +17,32 @@ import {
     TextField,
 } from "@mui/material";
 import { BACKEND_API_URL, formatDate } from "../../constants";
-import { Employee, Gender } from "../../models/Employee";
+import { Store, StoreCategory } from "../../models/Store";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
 
-export const AllEmployees = () => {
+export const AllStores = () => {
     const [loading, setLoading] = useState(false);
-    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [stores, setStores] = useState<Store[]>([]);
 
     const pageSize = 5;
     const [pageIndex, setPageIndex] = useState(0);
     const [pageText, setPageText] = useState("1");
 
-    const [sorting, setSorting] = useState({
-        key: "column name",
-        ascending: true,
-    });
-
-    function applySorting(key: string, ascending: boolean) {
-        if (key !== sorting.key) {
-            ascending = true;
-        }
-
-        setSorting({ key: key, ascending: ascending });
-    }
-
-    useEffect(() => {
-        if (employees.length === 0) {
-            return;
-        }
-
-        const currentEmployees = [...employees];
-        const sortedCurrentUsers = currentEmployees.sort((a, b) => {
-            // Check if the values are numbers
-            const aVal = a[sorting.key];
-            const bVal = b[sorting.key];
-            const isNumeric = !isNaN(aVal) && !isNaN(bVal);
-
-            // If both values are numbers, use subtraction for comparison
-            if (isNumeric) {
-                return parseFloat(aVal) - parseFloat(bVal);
-            } else {
-                return aVal.localeCompare(bVal);
-            }
-        });
-
-        setEmployees(
-            sorting.ascending
-                ? sortedCurrentUsers
-                : sortedCurrentUsers.reverse()
+    function fetchStores(page: number): Promise<Store[]> {
+        return fetch(`${BACKEND_API_URL}/stores/${page}/${pageSize}`).then(
+            (response) => response.json()
         );
-    }, [sorting]);
-
-    function fetchEmployees(page: number): Promise<Employee[]> {
-        return fetch(
-            `${BACKEND_API_URL}/storeemployees/${page}/${pageSize}`
-        ).then((response) => response.json());
     }
 
     useEffect(() => {
         setLoading(true);
         setPageText((pageIndex + 1).toString());
 
-        fetchEmployees(pageIndex).then((data) => {
-            setEmployees(data);
+        fetchStores(pageIndex).then((data) => {
+            setStores(data);
             setLoading(false);
         });
     }, [pageIndex, pageSize]);
@@ -119,14 +79,14 @@ export const AllEmployees = () => {
                     textAlign: "center",
                 }}
             >
-                All Employees
+                All Stores
             </h1>
 
             {loading && <CircularProgress />}
             {!loading && (
                 <Button
                     component={Link}
-                    to={`/employees/add`}
+                    to={`/stores/add`}
                     variant="text"
                     size="large"
                     sx={{ mb: 2, textTransform: "none" }}
@@ -135,10 +95,10 @@ export const AllEmployees = () => {
                     Create
                 </Button>
             )}
-            {!loading && employees.length === 0 && (
-                <p style={{ marginLeft: 16 }}>No employees found.</p>
+            {!loading && stores.length === 0 && (
+                <p style={{ marginLeft: 16 }}>No stores found.</p>
             )}
-            {!loading && employees.length > 0 && (
+            {!loading && stores.length > 0 && (
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
@@ -149,38 +109,11 @@ export const AllEmployees = () => {
                                 <TableCell
                                     align="left"
                                     style={{
-                                        cursor: "pointer",
                                         whiteSpace: "nowrap",
                                         userSelect: "none",
                                     }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "firstName",
-                                            !sorting.ascending
-                                        )
-                                    }
                                 >
-                                    First Name
-                                    {sorting.key === "firstName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        cursor: "pointer",
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "lastName",
-                                            !sorting.ascending
-                                        )
-                                    }
-                                >
-                                    Last Name
-                                    {sorting.key === "lastName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
+                                    Name
                                 </TableCell>
                                 <TableCell
                                     align="left"
@@ -189,7 +122,7 @@ export const AllEmployees = () => {
                                         userSelect: "none",
                                     }}
                                 >
-                                    Gender
+                                    Description
                                 </TableCell>
                                 <TableCell
                                     align="left"
@@ -198,34 +131,7 @@ export const AllEmployees = () => {
                                         userSelect: "none",
                                     }}
                                 >
-                                    Employment Date
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Termination Date
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Salary
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Role
+                                    Category
                                 </TableCell>
                                 <TableCell
                                     align="left"
@@ -248,34 +154,22 @@ export const AllEmployees = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {employees.map((employee, index) => (
-                                <TableRow key={employee.id}>
+                            {stores.map((store, index) => (
+                                <TableRow key={store.id}>
                                     <TableCell component="th" scope="row">
                                         {pageIndex * pageSize + index + 1}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {employee.firstName}
+                                        {store.name}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {employee.lastName}
+                                        {store.description}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {Gender[employee.gender]}
+                                        {[StoreCategory[store.category]]}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {formatDate(employee.employmentDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {formatDate(employee.terminationDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.salary}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.storeEmployeeRole?.name}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.storeShifts?.length}
+                                        {store.storeShifts?.length}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box
@@ -285,10 +179,10 @@ export const AllEmployees = () => {
                                         >
                                             <IconButton
                                                 component={Link}
-                                                to={`/employees/${employee.id}/details`}
+                                                to={`/stores/${store.id}/details`}
                                             >
                                                 <Tooltip
-                                                    title="View employee details"
+                                                    title="View store details"
                                                     arrow
                                                 >
                                                     <ReadMoreIcon color="primary" />
@@ -297,13 +191,13 @@ export const AllEmployees = () => {
                                             <IconButton
                                                 component={Link}
                                                 sx={{ ml: 1, mr: 1 }}
-                                                to={`/employees/${employee.id}/edit`}
+                                                to={`/stores/${store.id}/edit`}
                                             >
                                                 <EditIcon />
                                             </IconButton>
                                             <IconButton
                                                 component={Link}
-                                                to={`/employees/${employee.id}/delete`}
+                                                to={`/stores/${store.id}/delete`}
                                             >
                                                 <DeleteForeverIcon
                                                     sx={{ color: "red" }}
@@ -358,7 +252,7 @@ export const AllEmployees = () => {
                     <Button
                         variant="contained"
                         onClick={handleNextPage}
-                        disabled={employees.length < pageSize}
+                        disabled={stores.length < pageSize}
                     >
                         &gt;
                     </Button>

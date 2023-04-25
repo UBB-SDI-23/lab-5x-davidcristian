@@ -20,6 +20,20 @@ namespace StoreAPI.Controllers
             _context = context;
         }
 
+        // GET: api/Stores/0/10
+        [HttpGet("{page}/{pageSize}")]
+        public async Task<ActionResult<IEnumerable<Store>>> GetStores(int page = 0, int pageSize = 10)
+        {
+            if (_context.Stores == null)
+                return NotFound();
+
+            return await _context.Stores
+                .Include(x => x.StoreShifts)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
         // GET: api/Stores
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StoreDTO>>> GetStores()
@@ -134,6 +148,13 @@ namespace StoreAPI.Controllers
             var store = await _context.Stores.FindAsync(id);
             if (store == null)
                 return NotFound();
+
+            // delete all shifts for this store
+            var storeShifts = await _context.StoreShifts
+                .Where(x => x.StoreId == id)
+                .ToListAsync();
+            if (storeShifts != null)
+                _context.StoreShifts.RemoveRange(storeShifts);
 
             _context.Stores.Remove(store);
             await _context.SaveChangesAsync();

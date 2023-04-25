@@ -14,39 +14,41 @@ import { BACKEND_API_URL } from "../../constants";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
 
-export const EmployeeDelete = () => {
+export const ShiftDelete = () => {
     const navigate = useNavigate();
     const openSnackbar = useContext(SnackbarContext);
-    const { employeeId } = useParams();
+    const { storeId, employeeId } = useParams();
 
     const handleDelete = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
             await axios
-                .delete(`${BACKEND_API_URL}/storeemployees/${employeeId}`)
+                .delete(
+                    `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`
+                )
                 .then(() => {
-                    openSnackbar("success", "Employee deleted successfully!");
-                    navigate("/employees");
+                    openSnackbar("success", "Shift deleted successfully!");
+                    navigate("/shifts");
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to delete employee!\n" + reason.response?.data
+                        "Failed to delete shift!\n" + reason.response?.data
                     );
                 });
         } catch (error) {
             console.log(error);
             openSnackbar(
                 "error",
-                "Failed to delete employee due to an unknown error!"
+                "Failed to delete shift due to an unknown error!"
             );
         }
     };
 
     const handleCancel = (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        navigate("/employees");
+        navigate("/shifts");
     };
 
     return (
@@ -57,7 +59,7 @@ export const EmployeeDelete = () => {
                         <IconButton
                             component={Link}
                             sx={{ mr: 3 }}
-                            to={`/employees`}
+                            to={`/shifts`}
                         >
                             <ArrowBackIcon />
                         </IconButton>
@@ -69,13 +71,13 @@ export const EmployeeDelete = () => {
                                 marginLeft: -64,
                             }}
                         >
-                            Delete Employee
+                            Delete Shift
                         </h1>
                     </Box>
 
                     <p style={{ marginBottom: 0, textAlign: "center" }}>
-                        Are you sure you want to delete this employee? This
-                        cannot be undone!
+                        Are you sure you want to delete this shift? This cannot
+                        be undone!
                     </p>
                 </CardContent>
                 <CardActions

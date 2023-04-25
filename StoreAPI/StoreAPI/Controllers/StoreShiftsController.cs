@@ -20,9 +20,24 @@ namespace StoreAPI.Controllers
             _context = context;
         }
 
+        // GET: api/StoreShifts/pages/0/10
+        [HttpGet("pages/{page}/{pageSize}")]
+        public async Task<ActionResult<IEnumerable<StoreShift>>> GetStoreShifts(int page = 0, int pageSize = 10)
+        {
+            if (_context.StoreShifts == null)
+                return NotFound();
+
+            return await _context.StoreShifts
+                .Include(x => x.Store)
+                .Include(x => x.StoreEmployee)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
         // GET: api/StoreShifts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StoreShiftDTO>>> GetStoreShift()
+        public async Task<ActionResult<IEnumerable<StoreShiftDTO>>> GetStoreShifts()
         {
             if (_context.StoreShifts == null)
                 return NotFound();

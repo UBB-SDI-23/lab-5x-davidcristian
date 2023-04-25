@@ -9,5 +9,5 @@ export interface StoreShift {
     storeEmployeeId?: number;
 
     store: Store;
-    employee: Employee;
+    storeEmployee: Employee;
 }

@@ -14,15 +14,15 @@ import {
 
 import { useEffect, useState } from "react";
 import { BACKEND_API_URL } from "../../constants";
-import { StoreSalaryReport } from "../../models/StoreSalaryReport";
+import { StoreHeadcountReport } from "../../models/StoreHeadcountReport";
 import { StoreCategory } from "../../models/Store";
 
-export const ShowStoreSalaryReport = () => {
+export const ShowStoreHeadcountReport = () => {
     const [loading, setLoading] = useState(true);
     const [stores, setStores] = useState([]);
 
     useEffect(() => {
-        fetch(`${BACKEND_API_URL}/stores/report/salaries/`)
+        fetch(`${BACKEND_API_URL}/stores/report/headcount/`)
             .then((response) => response.json())
             .then((data) => {
                 setStores(data);
@@ -32,9 +32,14 @@ export const ShowStoreSalaryReport = () => {
 
     return (
         <Container>
-            <h1>
-                Stores ordered in descending order by the average salary of
-                their employees
+            <h1
+                style={{
+                    paddingTop: 26,
+                    marginBottom: 32,
+                    textAlign: "center",
+                }}
+            >
+                Stores ordered in descending order by the number of employees
             </h1>
             {loading && <CircularProgress />}
             {!loading && stores.length == 0 && <div>No stores found!</div>}
@@ -68,30 +73,32 @@ export const ShowStoreSalaryReport = () => {
                                     style={{ userSelect: "none" }}
                                     align="left"
                                 >
-                                    Average Salary
+                                    Headcount
                                 </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {stores.map((store: StoreSalaryReport, index) => (
-                                <TableRow key={store.id}>
-                                    <TableCell component="th" scope="row">
-                                        {index + 1}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {store.name}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {store.description}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {StoreCategory[store.category]}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {store.averageSalary}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {stores.map(
+                                (store: StoreHeadcountReport, index) => (
+                                    <TableRow key={store.id}>
+                                        <TableCell component="th" scope="row">
+                                            {index + 1}
+                                        </TableCell>
+                                        <TableCell align="left">
+                                            {store.name}
+                                        </TableCell>
+                                        <TableCell align="left">
+                                            {store.description}
+                                        </TableCell>
+                                        <TableCell align="left">
+                                            {StoreCategory[store.category]}
+                                        </TableCell>
+                                        <TableCell align="left">
+                                            {store.headcount}
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>

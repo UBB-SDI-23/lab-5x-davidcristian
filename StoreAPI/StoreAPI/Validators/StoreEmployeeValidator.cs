@@ -1,5 +1,4 @@
 ﻿using StoreAPI.Models;
-using static Azure.Core.HttpHeader;
 
 namespace StoreAPI.Validators
 {

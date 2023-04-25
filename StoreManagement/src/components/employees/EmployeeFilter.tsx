@@ -22,91 +22,45 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import { useContext } from "react";
+import { SnackbarContext } from "../SnackbarContext";
 
-export const AllEmployees = () => {
+export const EmployeeFilter = () => {
+    const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(false);
     const [employees, setEmployees] = useState<Employee[]>([]);
 
-    const pageSize = 5;
-    const [pageIndex, setPageIndex] = useState(0);
-    const [pageText, setPageText] = useState("1");
+    const [salaryText, setSalaryText] = useState("3000");
 
-    const [sorting, setSorting] = useState({
-        key: "column name",
-        ascending: true,
-    });
-
-    function applySorting(key: string, ascending: boolean) {
-        if (key !== sorting.key) {
-            ascending = true;
-        }
-
-        setSorting({ key: key, ascending: ascending });
-    }
-
-    useEffect(() => {
-        if (employees.length === 0) {
-            return;
-        }
-
-        const currentEmployees = [...employees];
-        const sortedCurrentUsers = currentEmployees.sort((a, b) => {
-            // Check if the values are numbers
-            const aVal = a[sorting.key];
-            const bVal = b[sorting.key];
-            const isNumeric = !isNaN(aVal) && !isNaN(bVal);
-
-            // If both values are numbers, use subtraction for comparison
-            if (isNumeric) {
-                return parseFloat(aVal) - parseFloat(bVal);
-            } else {
-                return aVal.localeCompare(bVal);
-            }
-        });
-
-        setEmployees(
-            sorting.ascending
-                ? sortedCurrentUsers
-                : sortedCurrentUsers.reverse()
-        );
-    }, [sorting]);
-
-    function fetchEmployees(page: number): Promise<Employee[]> {
-        return fetch(
-            `${BACKEND_API_URL}/storeemployees/${page}/${pageSize}`
-        ).then((response) => response.json());
-    }
-
-    useEffect(() => {
+    async function fetchEmployees(minSalary: number) {
         setLoading(true);
-        setPageText((pageIndex + 1).toString());
+        const response = await fetch(
+            `${BACKEND_API_URL}/storeemployees/Filter?minSalary=${minSalary}`
+        );
 
-        fetchEmployees(pageIndex).then((data) => {
-            setEmployees(data);
-            setLoading(false);
-        });
-    }, [pageIndex, pageSize]);
-
-    function handleNextPage() {
-        setPageIndex((prevPageIndex) => prevPageIndex + 1);
+        const employees = await response.json();
+        setEmployees(employees);
+        setLoading(false);
     }
 
-    function handlePrevPage() {
-        setPageIndex((prevPageIndex) => prevPageIndex - 1);
+    function parseData() {
+        const intValue = parseInt(salaryText, 10);
+
+        if (intValue > 0 && intValue <= 9999999) {
+            fetchEmployees(intValue);
+        } else {
+            openSnackbar("error", "Please enter a valid number.");
+        }
     }
 
     function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
         const value = event.target.value.replace(/[^\d]/g, "");
-        setPageText(value);
+        setSalaryText(value);
     }
 
     function handleInputKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
         if (event.key === "Enter") {
-            const intValue = parseInt(pageText, 10);
-
-            if (intValue > 0 && intValue <= 9999999) {
-                setPageIndex(intValue - 1);
-            }
+            parseData();
         }
     }
 
@@ -119,24 +73,51 @@ export const AllEmployees = () => {
                     textAlign: "center",
                 }}
             >
-                All Employees
+                Filter Employees
             </h1>
 
-            {loading && <CircularProgress />}
-            {!loading && (
-                <Button
-                    component={Link}
-                    to={`/employees/add`}
-                    variant="text"
-                    size="large"
-                    sx={{ mb: 2, textTransform: "none" }}
-                    startIcon={<AddIcon />}
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: 16,
+                    marginBottom: 16,
+                }}
+            >
+                <p
+                    style={{
+                        marginLeft: 16,
+                        marginRight: 8,
+                        userSelect: "none",
+                    }}
                 >
-                    Create
+                    {`Minimum salary: `}
+                </p>
+                <TextField
+                    value={salaryText}
+                    type="text"
+                    inputProps={{ min: 1, style: { textAlign: "center" } }}
+                    onChange={handleInputChange}
+                    onKeyPress={handleInputKeyPress}
+                    variant="outlined"
+                    size="small"
+                    style={{
+                        width: 100,
+                        marginRight: 16,
+                    }}
+                />
+                <Button variant="contained" onClick={parseData}>
+                    Filter
                 </Button>
-            )}
+            </div>
+
+            {loading && <CircularProgress />}
             {!loading && employees.length === 0 && (
-                <p style={{ marginLeft: 16 }}>No employees found.</p>
+                <p style={{ marginLeft: 16 }}>
+                    No employees found. If you haven't clicked on the filter
+                    button yet, make sure to do so.
+                </p>
             )}
             {!loading && employees.length > 0 && (
                 <TableContainer component={Paper}>
@@ -149,38 +130,20 @@ export const AllEmployees = () => {
                                 <TableCell
                                     align="left"
                                     style={{
-                                        cursor: "pointer",
                                         whiteSpace: "nowrap",
                                         userSelect: "none",
                                     }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "firstName",
-                                            !sorting.ascending
-                                        )
-                                    }
                                 >
                                     First Name
-                                    {sorting.key === "firstName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
                                 </TableCell>
                                 <TableCell
                                     align="left"
                                     style={{
-                                        cursor: "pointer",
                                         whiteSpace: "nowrap",
                                         userSelect: "none",
                                     }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "lastName",
-                                            !sorting.ascending
-                                        )
-                                    }
                                 >
                                     Last Name
-                                    {sorting.key === "lastName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
                                 </TableCell>
                                 <TableCell
                                     align="left"
@@ -228,15 +191,6 @@ export const AllEmployees = () => {
                                     Role
                                 </TableCell>
                                 <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    # of Shifts
-                                </TableCell>
-                                <TableCell
                                     align="center"
                                     style={{
                                         whiteSpace: "nowrap",
@@ -251,7 +205,7 @@ export const AllEmployees = () => {
                             {employees.map((employee, index) => (
                                 <TableRow key={employee.id}>
                                     <TableCell component="th" scope="row">
-                                        {pageIndex * pageSize + index + 1}
+                                        {index + 1}
                                     </TableCell>
                                     <TableCell align="left">
                                         {employee.firstName}
@@ -273,9 +227,6 @@ export const AllEmployees = () => {
                                     </TableCell>
                                     <TableCell align="left">
                                         {employee.storeEmployeeRole?.name}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.storeShifts?.length}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box
@@ -316,53 +267,6 @@ export const AllEmployees = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-            )}
-            {!loading && (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginTop: 16,
-                    }}
-                >
-                    <Button
-                        variant="contained"
-                        onClick={handlePrevPage}
-                        disabled={pageIndex === 0}
-                    >
-                        &lt;
-                    </Button>
-                    <p
-                        style={{
-                            marginLeft: 16,
-                            marginRight: 8,
-                            userSelect: "none",
-                        }}
-                    >
-                        {`Page `}
-                    </p>
-                    <TextField
-                        value={pageText}
-                        type="text"
-                        inputProps={{ min: 1, style: { textAlign: "center" } }}
-                        onChange={handleInputChange}
-                        onKeyPress={handleInputKeyPress}
-                        variant="outlined"
-                        size="small"
-                        style={{
-                            width: 100,
-                            marginRight: 16,
-                        }}
-                    />
-                    <Button
-                        variant="contained"
-                        onClick={handleNextPage}
-                        disabled={employees.length < pageSize}
-                    >
-                        &gt;
-                    </Button>
-                </div>
             )}
         </Container>
     );

@@ -21,9 +21,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios, { AxiosError } from "axios";
 import { EmployeeRole } from "../../models/EmployeeRole";
 import { debounce } from "lodash";
+import { useContext } from "react";
+import { SnackbarContext } from "../SnackbarContext";
 
 export const EmployeeAdd = () => {
     const navigate = useNavigate();
+    const openSnackbar = useContext(SnackbarContext);
     const [employeeRoles, setEmployeeRoles] = useState<EmployeeRole[]>([]);
 
     const [employee, setEmployee] = useState<Employee>({
@@ -34,7 +37,7 @@ export const EmployeeAdd = () => {
 
         employmentDate: "",
         terminationDate: "",
-        salary: 0,
+        salary: -1,
 
         storeEmployeeRoleId: 1,
     });
@@ -45,16 +48,22 @@ export const EmployeeAdd = () => {
             await axios
                 .post(`${BACKEND_API_URL}/storeemployees/`, employee)
                 .then(() => {
-                    alert("Employee added successfully!");
+                    openSnackbar("success", "Employee added successfully!");
+                    navigate("/employees");
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
-                    alert("Failed to add employee!");
+                    openSnackbar(
+                        "error",
+                        "Failed to add employee!\n" + reason.response?.data
+                    );
                 });
-            navigate("/employees");
         } catch (error) {
             console.log(error);
-            alert("Failed to add employee!");
+            openSnackbar(
+                "error",
+                "Failed to add employee due to an unknown error!"
+            );
         }
     };
 

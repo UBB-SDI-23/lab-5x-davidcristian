@@ -22,11 +22,15 @@ import { Employee, Gender } from "../../models/Employee";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
 import { EmployeeRole } from "../../models/EmployeeRole";
 import { debounce } from "lodash";
+import { useContext } from "react";
+import { SnackbarContext } from "../SnackbarContext";
 
 export const EmployeeUpdate = () => {
+    const navigate = useNavigate();
+    const openSnackbar = useContext(SnackbarContext);
+
     const [employeeRoles, setEmployeeRoles] = useState<EmployeeRole[]>([]);
     const { employeeId } = useParams<{ employeeId: string }>();
-    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
     const [employee, setEmployee] = useState<Employee>({
@@ -93,16 +97,22 @@ export const EmployeeUpdate = () => {
                     employee
                 )
                 .then(() => {
-                    alert("Employee updated successfully!");
+                    openSnackbar("success", "Employee updated successfully!");
+                    navigate("/employees");
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
-                    alert("Failed to update employee!");
+                    openSnackbar(
+                        "error",
+                        "Failed to update employee!\n" + reason.response?.data
+                    );
                 });
-            navigate("/employees");
         } catch (error) {
             console.log(error);
-            alert("Failed to update employee!");
+            openSnackbar(
+                "error",
+                "Failed to update employee due to an unknown error!"
+            );
         }
     };
 

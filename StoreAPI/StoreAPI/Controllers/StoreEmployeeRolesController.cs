@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StoreAPI.Models;
+using StoreAPI.Validators;
 
 namespace StoreAPI.Controllers
 {
@@ -14,10 +15,24 @@ namespace StoreAPI.Controllers
     public class StoreEmployeeRolesController : ControllerBase
     {
         private readonly StoreContext _context;
+        private readonly StoreEmployeeRoleValidator _validator;
 
         public StoreEmployeeRolesController(StoreContext context)
         {
             _context = context;
+            _validator = new StoreEmployeeRoleValidator();
+        }
+
+        // GET: api/StoreEmployeeRoles/count/10
+        [HttpGet("count/{pageSize}")]
+        public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
+        {
+            int totalAuthors = await _context.StoreEmployeeRoles.CountAsync();
+            int totalPages = totalAuthors / pageSize;
+            if (totalAuthors % pageSize > 0)
+                totalPages++;
+
+            return totalPages;
         }
 
         // GET: api/StoreEmployeeRoles/0/10
@@ -28,6 +43,7 @@ namespace StoreAPI.Controllers
                 return NotFound();
 
             return await _context.StoreEmployeeRoles
+                .Include(x => x.StoreEmployees)
                 .Skip(page * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -91,6 +107,11 @@ namespace StoreAPI.Controllers
             if (employeeRole == null)
                 return NotFound();
 
+            // Validate the employee role
+            var validationResult = _validator.Validate(employeeRoleDTO);
+            if (validationResult != string.Empty)
+                return BadRequest(validationResult);
+
             employeeRole.Name = employeeRoleDTO.Name;
             employeeRole.Description = employeeRoleDTO.Description;
             employeeRole.RoleLevel = employeeRoleDTO.RoleLevel;
@@ -116,6 +137,11 @@ namespace StoreAPI.Controllers
         {
             if (_context.StoreEmployeeRoles == null)
                 return Problem("Entity set 'StoreContext.StoreEmployeeRoles' is null.");
+
+            // Validate the employee role
+            var validationResult = _validator.Validate(employeeRoleDTO);
+            if (validationResult != string.Empty)
+                return BadRequest(validationResult);
 
             var employeeRole = new StoreEmployeeRole
             {

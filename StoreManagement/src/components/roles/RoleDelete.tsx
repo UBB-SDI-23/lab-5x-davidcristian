@@ -14,39 +14,39 @@ import { BACKEND_API_URL } from "../../constants";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
 
-export const EmployeeDelete = () => {
+export const RoleDelete = () => {
     const navigate = useNavigate();
     const openSnackbar = useContext(SnackbarContext);
-    const { employeeId } = useParams();
+    const { roleId } = useParams();
 
     const handleDelete = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
             await axios
-                .delete(`${BACKEND_API_URL}/storeemployees/${employeeId}`)
+                .delete(`${BACKEND_API_URL}/storeemployeeroles/${roleId}`)
                 .then(() => {
-                    openSnackbar("success", "Employee deleted successfully!");
-                    navigate("/employees");
+                    openSnackbar("success", "Role deleted successfully!");
+                    navigate("/roles");
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to delete employee!\n" + reason.response?.data
+                        "Failed to delete role!\n" + reason.response?.data
                     );
                 });
         } catch (error) {
             console.log(error);
             openSnackbar(
                 "error",
-                "Failed to delete employee due to an unknown error!"
+                "Failed to delete role due to an unknown error!"
             );
         }
     };
 
     const handleCancel = (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        navigate("/employees");
+        navigate("/roles");
     };
 
     return (
@@ -57,7 +57,7 @@ export const EmployeeDelete = () => {
                         <IconButton
                             component={Link}
                             sx={{ mr: 3 }}
-                            to={`/employees`}
+                            to={`/roles`}
                         >
                             <ArrowBackIcon />
                         </IconButton>
@@ -69,13 +69,13 @@ export const EmployeeDelete = () => {
                                 marginLeft: -64,
                             }}
                         >
-                            Delete Employee
+                            Delete Role
                         </h1>
                     </Box>
 
                     <p style={{ marginBottom: 0, textAlign: "center" }}>
-                        Are you sure you want to delete this employee? This
-                        cannot be undone!
+                        Are you sure you want to delete this role? This cannot
+                        be undone!
                     </p>
                 </CardContent>
                 <CardActions
