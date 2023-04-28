@@ -14,6 +14,7 @@ import { Store, StoreCategory } from "../../models/Store";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 
 export const StoreDetails = () => {
     const { storeId } = useParams();
@@ -86,6 +87,22 @@ export const StoreDetails = () => {
                             </ul>
                         )}
                     </Box>
+
+                    <Button
+                        component={Link}
+                        to={`/stores/${storeId}/addshift`}
+                        variant="text"
+                        size="large"
+                        sx={{
+                            color: "green",
+                            textTransform: "none",
+                            mt: 1,
+                            ml: 2.4,
+                        }}
+                        startIcon={<AccessTimeFilledIcon />}
+                    >
+                        Add Shift
+                    </Button>
                 </CardContent>
                 <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
                     <Button

@@ -108,6 +108,13 @@ export const StoreUpdate = () => {
         navigate("/stores");
     };
 
+    const convertToInputFormat = (dateString?: string) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const localDateString = date.toISOString().slice(0, 16);
+        return localDateString;
+    };
+
     return (
         <Container>
             {loading && <CircularProgress />}
@@ -280,7 +287,7 @@ export const StoreUpdate = () => {
                             <TextField
                                 id="openDate"
                                 label="Open Date"
-                                value={store.openDate}
+                                value={convertToInputFormat(store.openDate)}
                                 InputLabelProps={{ shrink: true }}
                                 type="datetime-local"
                                 variant="outlined"
@@ -299,7 +306,7 @@ export const StoreUpdate = () => {
                             <TextField
                                 id="closeDate"
                                 label="Close Date"
-                                value={store.closeDate}
+                                value={convertToInputFormat(store.closeDate)}
                                 InputLabelProps={{ shrink: true }}
                                 type="datetime-local"
                                 variant="outlined"

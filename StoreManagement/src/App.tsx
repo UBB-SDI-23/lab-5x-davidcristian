@@ -18,6 +18,7 @@ import { EmployeeDelete } from "./components/employees/EmployeeDelete";
 import { EmployeeAdd } from "./components/employees/EmployeeAdd";
 import { EmployeeUpdate } from "./components/employees/EmployeeUpdate";
 import { EmployeeFilter } from "./components/employees/EmployeeFilter";
+import { EmployeeShiftAdd } from "./components/employees/EmployeeShiftAdd";
 
 import { AllRoles } from "./components/roles/AllRoles";
 import { RoleAdd } from "./components/roles/RoleAdd";
@@ -30,6 +31,7 @@ import { StoreAdd } from "./components/stores/StoreAdd";
 import { StoreDetails } from "./components/stores/StoreDetails";
 import { StoreDelete } from "./components/stores/StoreDelete";
 import { StoreUpdate } from "./components/stores/StoreUpdate";
+import { StoreShiftAdd } from "./components/stores/StoreShiftAdd";
 
 import { AllShifts } from "./components/shifts/AllShifts";
 import { ShiftAdd } from "./components/shifts/ShiftAdd";
@@ -122,6 +124,10 @@ function App() {
                             path="/employees/add"
                             element={<EmployeeAdd />}
                         />
+                        <Route
+                            path="/employees/:employeeId/addshift"
+                            element={<EmployeeShiftAdd />}
+                        />
 
                         <Route
                             path="/roles/:roleId/details"
@@ -150,6 +156,10 @@ function App() {
                             element={<StoreDelete />}
                         />
                         <Route path="/stores/add" element={<StoreAdd />} />
+                        <Route
+                            path="/stores/:storeId/addshift"
+                            element={<StoreShiftAdd />}
+                        />
 
                         <Route
                             path="/shifts/:storeId/:employeeId/details"

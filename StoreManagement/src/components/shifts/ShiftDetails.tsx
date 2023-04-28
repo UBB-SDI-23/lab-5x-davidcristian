@@ -56,10 +56,10 @@ export const ShiftDetails = () => {
 
                     <Box sx={{ ml: 1 }}>
                         <p>
-                            Employee Name: {shift?.storeEmployee.firstName}{" "}
-                            {shift?.storeEmployee.lastName}
+                            Employee Name: {shift?.storeEmployee?.firstName}{" "}
+                            {shift?.storeEmployee?.lastName}
                         </p>
-                        <p>Store Name: {shift?.store.name}</p>
+                        <p>Store Name: {shift?.store?.name}</p>
                         <p>Start Date: {formatDate(shift?.startDate)}</p>
                         <p>End Date: {formatDate(shift?.endDate)}</p>
                     </Box>

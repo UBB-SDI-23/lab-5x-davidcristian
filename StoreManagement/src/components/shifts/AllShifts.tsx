@@ -29,45 +29,49 @@ export const AllShifts = () => {
 
     const pageSize = 5;
     const [pageIndex, setPageIndex] = useState(0);
-    const [pageText, setPageText] = useState("1");
+    const [totalPages, setTotalPages] = useState(999999);
 
-    function fetchStores(page: number): Promise<StoreShift[]> {
+    function fetchShifts(page: number): Promise<StoreShift[]> {
         return fetch(
             `${BACKEND_API_URL}/storeshifts/pages/${page}/${pageSize}`
         ).then((response) => response.json());
     }
 
     useEffect(() => {
-        setLoading(true);
-        setPageText((pageIndex + 1).toString());
+        const fetchPageCount = async () => {
+            const response = await fetch(
+                `${BACKEND_API_URL}/storeshifts/count/${pageSize}`
+            );
+            const count = await response.json();
+            setTotalPages(count);
+        };
+        fetchPageCount();
+    }, [pageSize]);
 
-        fetchStores(pageIndex).then((data) => {
+    useEffect(() => {
+        setLoading(true);
+
+        fetchShifts(pageIndex).then((data) => {
             setShifts(data);
             setLoading(false);
         });
     }, [pageIndex, pageSize]);
 
-    function handleNextPage() {
-        setPageIndex((prevPageIndex) => prevPageIndex + 1);
+    function handlePageClick(pageNumber: number) {
+        setPageIndex(pageNumber - 1);
     }
 
-    function handlePrevPage() {
-        setPageIndex((prevPageIndex) => prevPageIndex - 1);
-    }
+    const displayedPages = 9;
 
-    function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = event.target.value.replace(/[^\d]/g, "");
-        setPageText(value);
-    }
+    let startPage = pageIndex - Math.floor((displayedPages - 3) / 2) + 1;
+    let endPage = startPage + displayedPages - 3;
 
-    function handleInputKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
-        if (event.key === "Enter") {
-            const intValue = parseInt(pageText, 10);
-
-            if (intValue > 0 && intValue <= 9999999) {
-                setPageIndex(intValue - 1);
-            }
-        }
+    if (startPage <= 2) {
+        startPage = 1;
+        endPage = displayedPages - 1;
+    } else if (endPage >= totalPages - 1) {
+        startPage = totalPages - displayedPages + 2;
+        endPage = totalPages;
     }
 
     return (
@@ -87,6 +91,7 @@ export const AllShifts = () => {
                 <Button
                     component={Link}
                     to={`/shifts/add`}
+                    disabled={true}
                     variant="text"
                     size="large"
                     sx={{ mb: 2, textTransform: "none" }}
@@ -160,11 +165,11 @@ export const AllShifts = () => {
                                         {pageIndex * pageSize + index + 1}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {shift.storeEmployee.firstName}{" "}
-                                        {shift.storeEmployee.lastName}
+                                        {shift.storeEmployee?.firstName}{" "}
+                                        {shift.storeEmployee?.lastName}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {shift.store.name}
+                                        {shift.store?.name}
                                     </TableCell>
                                     <TableCell align="left">
                                         {formatDate(shift.startDate)}
@@ -223,37 +228,77 @@ export const AllShifts = () => {
                 >
                     <Button
                         variant="contained"
-                        onClick={handlePrevPage}
+                        onClick={() =>
+                            setPageIndex((prevPageIndex) =>
+                                Math.max(prevPageIndex - 1, 0)
+                            )
+                        }
                         disabled={pageIndex === 0}
                     >
                         &lt;
                     </Button>
-                    <p
-                        style={{
-                            marginLeft: 16,
-                            marginRight: 8,
-                            userSelect: "none",
-                        }}
-                    >
-                        {`Page `}
-                    </p>
-                    <TextField
-                        value={pageText}
-                        type="text"
-                        inputProps={{ min: 1, style: { textAlign: "center" } }}
-                        onChange={handleInputChange}
-                        onKeyPress={handleInputKeyPress}
-                        variant="outlined"
-                        size="small"
-                        style={{
-                            width: 100,
-                            marginRight: 16,
-                        }}
-                    />
+                    {startPage > 1 && (
+                        <>
+                            <Button
+                                variant={
+                                    pageIndex === 0 ? "contained" : "outlined"
+                                }
+                                onClick={() => handlePageClick(1)}
+                                style={{
+                                    marginLeft: 8,
+                                    marginRight: 8,
+                                }}
+                            >
+                                1
+                            </Button>
+                            <span>...</span>
+                        </>
+                    )}
+                    {Array.from(
+                        { length: endPage - startPage + 1 },
+                        (_, i) => i + startPage
+                    ).map((number) => (
+                        <Button
+                            key={number}
+                            variant={
+                                pageIndex === number - 1
+                                    ? "contained"
+                                    : "outlined"
+                            }
+                            onClick={() => handlePageClick(number)}
+                            style={{
+                                marginLeft: 8,
+                                marginRight: 8,
+                            }}
+                        >
+                            {number}
+                        </Button>
+                    ))}
+                    {endPage < totalPages && (
+                        <>
+                            <span>...</span>
+                            <Button
+                                variant={
+                                    pageIndex === totalPages - 1
+                                        ? "contained"
+                                        : "outlined"
+                                }
+                                onClick={() => handlePageClick(totalPages)}
+                                style={{
+                                    marginLeft: 8,
+                                    marginRight: 8,
+                                }}
+                            >
+                                {totalPages}
+                            </Button>
+                        </>
+                    )}
                     <Button
                         variant="contained"
-                        onClick={handleNextPage}
-                        disabled={shifts.length < pageSize}
+                        onClick={() =>
+                            setPageIndex((prevPageIndex) => prevPageIndex + 1)
+                        }
+                        disabled={pageIndex + 1 >= totalPages}
                     >
                         &gt;
                     </Button>

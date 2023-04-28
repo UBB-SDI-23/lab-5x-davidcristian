@@ -52,7 +52,7 @@ export const RoleUpdate = () => {
                 roleLevel: role.roleLevel,
             });
 
-            setLoading(false);
+            setLoading(false); // todo check if setloading is true in every file before
         };
         fetchRole();
     }, [roleId]);
@@ -101,7 +101,7 @@ export const RoleUpdate = () => {
                             <IconButton
                                 component={Link}
                                 sx={{ mb: 2, mr: 3 }}
-                                to={`/employees`}
+                                to={`/roles`}
                             >
                                 <ArrowBackIcon />
                             </IconButton>

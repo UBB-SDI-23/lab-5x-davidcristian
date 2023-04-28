@@ -124,7 +124,7 @@ export const EmployeeUpdate = () => {
     const fetchSuggestions = async (query: string) => {
         try {
             const response = await axios.get<EmployeeRole[]>(
-                `${BACKEND_API_URL}/storeemployeeroles/Search?query=${query}`
+                `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`
             );
             const data = await response.data;
             data.unshift(employeeRole.current);
@@ -156,6 +156,13 @@ export const EmployeeUpdate = () => {
         if (reason === "input") {
             debouncedFetchSuggestions(value);
         }
+    };
+
+    const convertToInputFormat = (dateString?: string) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const localDateString = date.toISOString().slice(0, 16);
+        return localDateString;
     };
 
     return (
@@ -252,7 +259,9 @@ export const EmployeeUpdate = () => {
                             <TextField
                                 id="employmentDate"
                                 label="Employment Date"
-                                value={employee.employmentDate}
+                                value={convertToInputFormat(
+                                    employee.employmentDate
+                                )}
                                 InputLabelProps={{ shrink: true }}
                                 type="datetime-local"
                                 variant="outlined"
@@ -271,7 +280,9 @@ export const EmployeeUpdate = () => {
                             <TextField
                                 id="terminationDate"
                                 label="Termination Date"
-                                value={employee.terminationDate}
+                                value={convertToInputFormat(
+                                    employee.terminationDate
+                                )}
                                 InputLabelProps={{ shrink: true }}
                                 type="datetime-local"
                                 variant="outlined"
@@ -304,6 +315,7 @@ export const EmployeeUpdate = () => {
 
                             <Autocomplete
                                 id="storeEmployeeRoleId"
+                                sx={{ mb: 2 }}
                                 options={employeeRoles}
                                 value={employeeRole.current}
                                 getOptionLabel={(option) => option.name}

@@ -27,9 +27,9 @@ namespace StoreAPI.Controllers
         [HttpGet("count/{pageSize}")]
         public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
         {
-            int totalAuthors = await _context.StoreEmployeeRoles.CountAsync();
-            int totalPages = totalAuthors / pageSize;
-            if (totalAuthors % pageSize > 0)
+            int total = await _context.StoreEmployeeRoles.CountAsync();
+            int totalPages = total / pageSize;
+            if (total % pageSize > 0)
                 totalPages++;
 
             return totalPages;
@@ -78,8 +78,8 @@ namespace StoreAPI.Controllers
             return employeeRole;
         }
 
-        // GET: api/StoreEmployeeRoles/Search?query=Trainee
-        [HttpGet("Search")]
+        // GET: api/StoreEmployeeRoles/search?query=trainee
+        [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<StoreEmployeeRoleDTO>>> SearchStoreEmployeeRoles(string query)
         {
             if (_context.StoreEmployeeRoles == null)
@@ -91,7 +91,7 @@ namespace StoreAPI.Controllers
             return await _context.StoreEmployeeRoles
                 .Where(x => x.Name != null && x.Name.ToLower().Contains(query.ToLower()))
                 .Select(x => EmployeeRoleToDTO(x))
-                .Take(10)
+                .Take(100)
                 .ToListAsync();
         }
 

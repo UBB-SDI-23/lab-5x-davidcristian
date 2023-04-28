@@ -5,9 +5,9 @@ export interface StoreShift {
     startDate?: string;
     endDate?: string;
 
-    storeId?: number;
-    storeEmployeeId?: number;
+    storeId: number;
+    storeEmployeeId: number;
 
-    store: Store;
-    storeEmployee: Employee;
+    store?: Store;
+    storeEmployee?: Employee;
 }

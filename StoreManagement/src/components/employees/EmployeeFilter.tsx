@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import { Employee, Gender } from "../../models/Employee";
-import AddIcon from "@mui/icons-material/Add";
+import axios, { AxiosError } from "axios";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
@@ -32,14 +32,16 @@ export const EmployeeFilter = () => {
 
     const [salaryText, setSalaryText] = useState("3000");
 
+    // TODO: use axios everywhere
+    // Fix Circular Progress bar in this file
     async function fetchEmployees(minSalary: number) {
         setLoading(true);
-        const response = await fetch(
+        const response = await axios.get<Employee[]>(
             `${BACKEND_API_URL}/storeemployees/Filter?minSalary=${minSalary}`
         );
 
-        const employees = await response.json();
-        setEmployees(employees);
+        const data = response.data;
+        setEmployees(data);
         setLoading(false);
     }
 

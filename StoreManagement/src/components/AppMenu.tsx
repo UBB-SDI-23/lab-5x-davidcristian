@@ -21,7 +21,7 @@ export const AppMenu = () => {
     const path = location.pathname;
 
     return (
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, position: "sticky", top: "0" }}>
             <AppBar position="static" sx={{ marginBottom: "20px" }}>
                 <Toolbar>
                     <IconButton

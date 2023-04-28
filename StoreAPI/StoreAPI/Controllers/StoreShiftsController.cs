@@ -20,6 +20,18 @@ namespace StoreAPI.Controllers
             _context = context;
         }
 
+        // GET: api/StoreShifts/count/10
+        [HttpGet("count/{pageSize}")]
+        public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
+        {
+            int total = await _context.StoreShifts.CountAsync();
+            int totalPages = total / pageSize;
+            if (total % pageSize > 0)
+                totalPages++;
+
+            return totalPages;
+        }
+
         // GET: api/StoreShifts/pages/0/10
         [HttpGet("pages/{page}/{pageSize}")]
         public async Task<ActionResult<IEnumerable<StoreShift>>> GetStoreShifts(int page = 0, int pageSize = 10)
@@ -148,7 +160,7 @@ namespace StoreAPI.Controllers
 
             return CreatedAtAction(
                 nameof(GetStoreShift),
-                new { StoreId = store.Id, StoreEmployeeId = employee.Id },
+                new { sid = store.Id, eid = employee.Id },
                 storeShift);
         }
 

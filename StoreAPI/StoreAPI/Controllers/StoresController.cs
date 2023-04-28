@@ -20,6 +20,18 @@ namespace StoreAPI.Controllers
             _context = context;
         }
 
+        // GET: api/Stores/count/10
+        [HttpGet("count/{pageSize}")]
+        public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
+        {
+            int total = await _context.Stores.CountAsync();
+            int totalPages = total / pageSize;
+            if (total % pageSize > 0)
+                totalPages++;
+
+            return totalPages;
+        }
+
         // GET: api/Stores/0/10
         [HttpGet("{page}/{pageSize}")]
         public async Task<ActionResult<IEnumerable<Store>>> GetStores(int page = 0, int pageSize = 10)
@@ -62,6 +74,23 @@ namespace StoreAPI.Controllers
                 return NotFound();
 
             return store;
+        }
+
+        // GET: api/Stores/search?query=walmart
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<StoreDTO>>> SearchStores(string query)
+        {
+            if (_context.Stores == null)
+                return NotFound();
+
+            if (query.Length < 3)
+                return NotFound();
+
+            return await _context.Stores
+                .Where(x => x.Name != null && x.Name.ToLower().Contains(query.ToLower()))
+                .Select(x => StoreToDTO(x))
+                .Take(100)
+                .ToListAsync();
         }
 
         // PUT: api/Stores/5

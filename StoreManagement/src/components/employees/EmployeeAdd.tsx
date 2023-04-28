@@ -85,7 +85,7 @@ export const EmployeeAdd = () => {
     const fetchSuggestions = async (query: string) => {
         try {
             const response = await axios.get<EmployeeRole[]>(
-                `${BACKEND_API_URL}/storeemployeeroles/Search?query=${query}`
+                `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`
             );
             const data = await response.data;
             const removedDupes = data.filter(
@@ -248,6 +248,7 @@ export const EmployeeAdd = () => {
 
                         <Autocomplete
                             id="storeEmployeeRoleId"
+                            sx={{ mb: 2 }}
                             options={employeeRoles}
                             getOptionLabel={(option) => option.name}
                             renderOption={(props, option) => {

@@ -23,6 +23,18 @@ namespace StoreAPI.Controllers
             _validator = new StoreEmployeeValidator();
         }
 
+        // GET: api/StoreEmployees/count/10
+        [HttpGet("count/{pageSize}")]
+        public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
+        {
+            int total = await _context.StoreEmployees.CountAsync();
+            int totalPages = total / pageSize;
+            if (total % pageSize > 0)
+                totalPages++;
+
+            return totalPages;
+        }
+
         // GET: api/StoreEmployees/0/10
         [HttpGet("{page}/{pageSize}")]
         public async Task<ActionResult<IEnumerable<StoreEmployee>>> GetStoreEmployee(int page = 0, int pageSize = 10)
@@ -67,6 +79,23 @@ namespace StoreAPI.Controllers
                 return NotFound();
 
             return storeEmployee;
+        }
+
+        // GET: api/StoreEmployees/search?query=john
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<StoreEmployeeDTO>>> SearchStoreEmployees(string query)
+        {
+            if (_context.StoreEmployees == null)
+                return NotFound();
+
+            if (query.Length < 3)
+                return NotFound();
+
+            return await _context.StoreEmployees
+                .Where(x => (x.FirstName != null && x.FirstName.ToLower().Contains(query.ToLower())) || (x.LastName != null && x.LastName.ToLower().Contains(query.ToLower())))
+                .Select(x => EmployeeToDTO(x))
+                .Take(100)
+                .ToListAsync();
         }
 
         // PUT: api/StoreEmployees/5
