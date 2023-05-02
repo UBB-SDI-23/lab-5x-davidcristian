@@ -1,11 +1,5 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using StoreAPI.Models;
-using System.Configuration;
-using System.Text;
 using System.Text.Json.Serialization;
 
 namespace StoreAPI
@@ -18,38 +12,10 @@ namespace StoreAPI
             // Add services to the container.
             //builder.Services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
-            builder.Services.AddControllers(options =>
-            {
-                var policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-                options.Filters.Add(new AuthorizeFilter(policy));
-            })
+            builder.Services.AddControllers()
                 .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
                 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
             ;
-
-            var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
-            builder.Services.Configure<JwtSettings>(jwtSettingsSection);
-            var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
-
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings!.Secret)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
 
             var connectionString = builder.Configuration.GetConnectionString("LocalStoreDatabase");
             if (string.IsNullOrEmpty(connectionString))
@@ -90,7 +56,6 @@ namespace StoreAPI
             }
 
             app.UseHttpsRedirection();
-            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();

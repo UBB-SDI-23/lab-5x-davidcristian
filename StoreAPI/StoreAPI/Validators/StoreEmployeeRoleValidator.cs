@@ -11,7 +11,7 @@ namespace StoreAPI.Validators
             List<string> errors = new List<string>();
 
             if (role == null)
-                return "Role must not be null.";
+                errors.Add("Role must not be null.");
 
             if (role.Name == null || role.Name.Length < 3)
                 errors.Add("Name must have a length greater than 2 characters.");

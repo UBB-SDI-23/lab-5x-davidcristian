@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using StoreAPI.Models;
 using StoreAPI.Validators;
 
@@ -46,7 +45,6 @@ namespace StoreAPI.Controllers
             return await _context.StoreEmployees
                 .Include(x => x.StoreEmployeeRole)
                 .Include(x => x.StoreShifts)
-                .Include(x => x.User)
                 .Skip(page * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -113,7 +111,7 @@ namespace StoreAPI.Controllers
                 return NotFound();
 
             // validate the store employee
-            var validationResult = _validator.Validate(employeeDTO);
+            string validationResult = _validator.Validate(employeeDTO);
             if (validationResult != string.Empty)
                 return BadRequest(validationResult);
 
@@ -155,7 +153,7 @@ namespace StoreAPI.Controllers
                 return Problem("Entity set 'StoreContext.StoreEmployees' is null.");
 
             // validate the store employee
-            var validationResult = _validator.Validate(employeeDTO);
+            string validationResult = _validator.Validate(employeeDTO);
             if (validationResult != string.Empty)
                 return BadRequest(validationResult);
 

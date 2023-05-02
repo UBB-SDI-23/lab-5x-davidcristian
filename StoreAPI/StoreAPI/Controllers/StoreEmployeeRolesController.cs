@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using StoreAPI.Models;
 using StoreAPI.Validators;
 
@@ -45,7 +44,6 @@ namespace StoreAPI.Controllers
 
             return await _context.StoreEmployeeRoles
                 .Include(x => x.StoreEmployees)
-                .Include(x => x.User)
                 .Skip(page * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

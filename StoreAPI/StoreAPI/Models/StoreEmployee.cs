@@ -24,8 +24,5 @@
         // Hidden from the API because it's not in the DTO
         public virtual StoreEmployeeRole StoreEmployeeRole { get; set; } = null!;
         public virtual ICollection<StoreShift> StoreShifts { get; set; } = null!;
-
-        public virtual long? UserId { get; set; }
-        public virtual User User { get; set; } = null!;
     }
 }
