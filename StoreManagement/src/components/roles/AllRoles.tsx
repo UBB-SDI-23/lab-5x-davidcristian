@@ -22,6 +22,8 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import { getAuthToken } from "../../auth";
+import axios from "axios";
 
 export const AllRoles = () => {
     const [loading, setLoading] = useState(false);
@@ -31,18 +33,30 @@ export const AllRoles = () => {
     const [pageIndex, setPageIndex] = useState(0);
     const [totalPages, setTotalPages] = useState(999999);
 
-    function fetchRoles(page: number): Promise<EmployeeRole[]> {
-        return fetch(
-            `${BACKEND_API_URL}/storeemployeeroles/${page}/${pageSize}`
-        ).then((response) => response.json());
+    async function fetchRoles(page: number): Promise<EmployeeRole[]> {
+        const response = await axios.get<EmployeeRole[]>(
+            `${BACKEND_API_URL}/storeemployeeroles/${page}/${pageSize}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${getAuthToken()}`,
+                },
+            }
+        );
+
+        return response.data;
     }
 
     useEffect(() => {
         const fetchPageCount = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/storeemployeeroles/count/${pageSize}`
+            const response = await axios.get<number>(
+                `${BACKEND_API_URL}/storeemployeeroles/count/${pageSize}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const count = await response.json();
+            const count = response.data;
             setTotalPages(count);
         };
         fetchPageCount();
@@ -147,6 +161,15 @@ export const AllRoles = () => {
                                     # of Employees
                                 </TableCell>
                                 <TableCell
+                                    align="left"
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
+                                >
+                                    User
+                                </TableCell>
+                                <TableCell
                                     align="center"
                                     style={{
                                         whiteSpace: "nowrap",
@@ -174,6 +197,14 @@ export const AllRoles = () => {
                                     </TableCell>
                                     <TableCell align="left">
                                         {role.storeEmployees?.length}
+                                    </TableCell>
+                                    <TableCell align="left">
+                                        <Link
+                                            to={`/users/${role.user?.id}/details`}
+                                            title="View user details"
+                                        >
+                                            {role.user?.name}
+                                        </Link>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box

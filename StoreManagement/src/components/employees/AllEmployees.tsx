@@ -22,6 +22,8 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import { getAuthToken } from "../../auth";
+import axios from "axios";
 
 export const AllEmployees = () => {
     const [loading, setLoading] = useState(false);
@@ -74,19 +76,31 @@ export const AllEmployees = () => {
     useEffect(() => {
         // TODO: improve this func in all
         const fetchPageCount = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/storeemployees/count/${pageSize}`
+            const response = await axios.get<number>(
+                `${BACKEND_API_URL}/storeemployees/count/${pageSize}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const count = await response.json();
+            const count = response.data;
             setTotalPages(count);
         };
         fetchPageCount();
     }, [pageSize]);
 
-    function fetchEmployees(page: number): Promise<Employee[]> {
-        return fetch(
-            `${BACKEND_API_URL}/storeemployees/${page}/${pageSize}`
-        ).then((response) => response.json());
+    async function fetchEmployees(page: number): Promise<Employee[]> {
+        const response = await axios.get<Employee[]>(
+            `${BACKEND_API_URL}/storeemployees/${page}/${pageSize}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${getAuthToken()}`,
+                },
+            }
+        );
+
+        return response.data;
     }
 
     function handlePageClick(pageNumber: number) {
@@ -242,6 +256,15 @@ export const AllEmployees = () => {
                                     # of Shifts
                                 </TableCell>
                                 <TableCell
+                                    align="left"
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
+                                >
+                                    User
+                                </TableCell>
+                                <TableCell
                                     align="center"
                                     style={{
                                         whiteSpace: "nowrap",
@@ -281,6 +304,14 @@ export const AllEmployees = () => {
                                     </TableCell>
                                     <TableCell align="left">
                                         {employee.storeShifts?.length}
+                                    </TableCell>
+                                    <TableCell align="left">
+                                        <Link
+                                            to={`/users/${employee.user?.id}/details`}
+                                            title="View user details"
+                                        >
+                                            {employee.user?.name}
+                                        </Link>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box

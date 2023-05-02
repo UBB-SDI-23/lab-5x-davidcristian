@@ -23,6 +23,7 @@ import { EmployeeRole } from "../../models/EmployeeRole";
 import { debounce } from "lodash";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const RoleUpdate = () => {
     const navigate = useNavigate();
@@ -40,10 +41,15 @@ export const RoleUpdate = () => {
 
     useEffect(() => {
         const fetchRole = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/storeemployeeroles/${roleId}/`
+            const response = await axios.get<EmployeeRole>(
+                `${BACKEND_API_URL}/storeemployeeroles/${roleId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const role = await response.json();
+            const role = response.data;
 
             setRole({
                 id: role.id,
@@ -61,7 +67,11 @@ export const RoleUpdate = () => {
         event.preventDefault();
         try {
             await axios
-                .put(`${BACKEND_API_URL}/storeemployeeroles/${roleId}/`, role)
+                .put(`${BACKEND_API_URL}/storeemployeeroles/${roleId}`, role, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Role updated successfully!");
                     navigate("/roles");
@@ -70,7 +80,10 @@ export const RoleUpdate = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to update role!\n" + reason.response?.data
+                        "Failed to update role!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {

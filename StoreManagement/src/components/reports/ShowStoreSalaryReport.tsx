@@ -16,18 +16,30 @@ import { useEffect, useState } from "react";
 import { BACKEND_API_URL } from "../../constants";
 import { StoreSalaryReport } from "../../models/StoreSalaryReport";
 import { StoreCategory } from "../../models/Store";
+import axios from "axios";
+import { getAuthToken } from "../../auth";
 
 export const ShowStoreSalaryReport = () => {
     const [loading, setLoading] = useState(true);
     const [stores, setStores] = useState([]);
 
     useEffect(() => {
-        fetch(`${BACKEND_API_URL}/stores/report/salaries/`)
-            .then((response) => response.json())
-            .then((data) => {
-                setStores(data);
-                setLoading(false);
-            });
+        setLoading(true);
+
+        const fetchStores = async () => {
+            const response = await axios.get<[]>(
+                `${BACKEND_API_URL}/stores/report/salaries`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
+            );
+
+            setStores(response.data);
+            setLoading(false);
+        };
+        fetchStores();
     }, []);
 
     return (

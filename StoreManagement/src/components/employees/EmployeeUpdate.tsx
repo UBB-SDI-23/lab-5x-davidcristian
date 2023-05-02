@@ -24,6 +24,7 @@ import { EmployeeRole } from "../../models/EmployeeRole";
 import { debounce } from "lodash";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const EmployeeUpdate = () => {
     const navigate = useNavigate();
@@ -55,16 +56,21 @@ export const EmployeeUpdate = () => {
 
     useEffect(() => {
         const fetchEmployee = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/storeemployees/${employeeId}/`
+            const response = await axios.get<Employee>(
+                `${BACKEND_API_URL}/storeemployees/${employeeId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
 
-            const employee = await response.json();
+            const employee = response.data;
             const fetchedEmployeeRole = {
-                id: employee.storeEmployeeRole.id,
-                name: employee.storeEmployeeRole.name,
-                description: employee.storeEmployeeRole.description,
-                roleLevel: employee.storeEmployeeRole.roleLevel,
+                id: employee.storeEmployeeRole?.id ?? 0,
+                name: employee.storeEmployeeRole?.name ?? "",
+                description: employee.storeEmployeeRole?.description ?? "",
+                roleLevel: employee.storeEmployeeRole?.roleLevel ?? 0,
             };
             employeeRole.current = fetchedEmployeeRole;
             setEmployeeRoles([employeeRole.current]);
@@ -93,8 +99,13 @@ export const EmployeeUpdate = () => {
         try {
             await axios
                 .put(
-                    `${BACKEND_API_URL}/storeemployees/${employeeId}/`,
-                    employee
+                    `${BACKEND_API_URL}/storeemployees/${employeeId}`,
+                    employee,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
                 )
                 .then(() => {
                     openSnackbar("success", "Employee updated successfully!");
@@ -104,7 +115,10 @@ export const EmployeeUpdate = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to update employee!\n" + reason.response?.data
+                        "Failed to update employee!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {
@@ -124,9 +138,14 @@ export const EmployeeUpdate = () => {
     const fetchSuggestions = async (query: string) => {
         try {
             const response = await axios.get<EmployeeRole[]>(
-                `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`
+                `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const data = await response.data;
+            const data = response.data;
             data.unshift(employeeRole.current);
             const removedDupes = data.filter(
                 (v, i, a) => a.findIndex((v2) => v2.name === v.name) === i

@@ -19,6 +19,8 @@ import { StoreShift } from "../../models/StoreShift";
 import { debounce } from "lodash";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
+import { Employee } from "../../models/Employee";
 
 export const EmployeeShiftAdd = () => {
     const navigate = useNavigate();
@@ -40,7 +42,11 @@ export const EmployeeShiftAdd = () => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/storeshifts/`, shift)
+                .post(`${BACKEND_API_URL}/storeshifts`, shift, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Shift added successfully!");
                     navigate("/employees");
@@ -49,7 +55,10 @@ export const EmployeeShiftAdd = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to add shift!\n" + reason.response?.data
+                        "Failed to add shift!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {
@@ -64,18 +73,30 @@ export const EmployeeShiftAdd = () => {
     useEffect(() => {
         const fetchStores = async () => {
             try {
-                const response = await fetch(
-                    `${BACKEND_API_URL}/storeemployees/${employeeId}`
+                const response = await axios.get<Employee>(
+                    `${BACKEND_API_URL}/storeemployees/${employeeId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
                 );
-                const data = await response.json();
+                const data = response.data;
                 setEmployeeName(data.firstName + " " + data.lastName ?? "");
                 setShift({
                     ...shift,
-                    storeEmployeeId: data.id,
+                    storeEmployeeId: data.id ?? 0,
                 });
 
-                const response2 = await fetch(`${BACKEND_API_URL}/stores/0/10`);
-                const data2 = await response2.json();
+                const response2 = await axios.get<Store[]>(
+                    `${BACKEND_API_URL}/stores/0/10`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                );
+                const data2 = response2.data;
                 setStores(data2);
             } catch (error) {
                 console.log(error);
@@ -87,9 +108,14 @@ export const EmployeeShiftAdd = () => {
     const fetchSuggestions = async (query: string) => {
         try {
             const response = await axios.get<Store[]>(
-                `${BACKEND_API_URL}/stores/search?query=${query}`
+                `${BACKEND_API_URL}/stores/search?query=${query}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const data = await response.data;
+            const data = response.data;
             const removedDupes = data.filter(
                 (v, i, a) => a.findIndex((v2) => v2.name === v.name) === i
             );

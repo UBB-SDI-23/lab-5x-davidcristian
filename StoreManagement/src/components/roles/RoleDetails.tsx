@@ -14,6 +14,8 @@ import { EmployeeRole } from "../../models/EmployeeRole";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { getAuthToken } from "../../auth";
+import axios from "axios";
 
 export const RoleDetails = () => {
     const { roleId } = useParams();
@@ -21,10 +23,15 @@ export const RoleDetails = () => {
 
     useEffect(() => {
         const fetchEmployee = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/storeemployeeroles/${roleId}`
+            const response = await axios.get<EmployeeRole>(
+                `${BACKEND_API_URL}/storeemployeeroles/${roleId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const employee = await response.json();
+            const employee = response.data;
             setRole(employee);
         };
         fetchEmployee();

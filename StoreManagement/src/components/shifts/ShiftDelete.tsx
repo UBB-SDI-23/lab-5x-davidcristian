@@ -13,6 +13,7 @@ import axios, { AxiosError } from "axios";
 import { BACKEND_API_URL } from "../../constants";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const ShiftDelete = () => {
     const navigate = useNavigate();
@@ -24,7 +25,12 @@ export const ShiftDelete = () => {
         try {
             await axios
                 .delete(
-                    `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`
+                    `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
                 )
                 .then(() => {
                     openSnackbar("success", "Shift deleted successfully!");
@@ -34,7 +40,10 @@ export const ShiftDelete = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to delete shift!\n" + reason.response?.data
+                        "Failed to delete shift!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {

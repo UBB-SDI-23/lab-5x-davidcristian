@@ -39,6 +39,11 @@ import { ShiftDetails } from "./components/shifts/ShiftDetails";
 import { ShiftDelete } from "./components/shifts/ShiftDelete";
 import { ShiftUpdate } from "./components/shifts/ShiftUpdate";
 
+import { UserDetails } from "./components/users/UserDetails";
+import { UserRegister } from "./components/users/UserRegister";
+import { UserRegisterConfirm } from "./components/users/UserRegisterConfirm";
+import { UserLogin } from "./components/users/UserLogin";
+
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
     props,
     ref
@@ -90,6 +95,21 @@ function App() {
 
                     <Routes>
                         <Route path="/" element={<AppHome />} />
+
+                        <Route
+                            path="/users/:userId/details"
+                            element={<UserDetails />}
+                        />
+                        <Route
+                            path="/users/register"
+                            element={<UserRegister />}
+                        />
+                        <Route
+                            path="/users/register/confirm/:token"
+                            element={<UserRegisterConfirm />}
+                        />
+                        <Route path="/users/login" element={<UserLogin />} />
+
                         <Route
                             path="/filteremployees"
                             element={<EmployeeFilter />}

@@ -18,41 +18,40 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios, { AxiosError } from "axios";
-import { EmployeeRole } from "../../models/EmployeeRole";
+import { User } from "../../models/User";
 import { debounce } from "lodash";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken } from "../../auth";
 
-export const RoleAdd = () => {
+import { setAccount, setAuthToken } from "../../auth";
+
+export const UserLogin = () => {
     const navigate = useNavigate();
     const openSnackbar = useContext(SnackbarContext);
 
-    const [role, setRole] = useState<EmployeeRole>({
+    const [user, setUser] = useState<User>({
         name: "",
-        description: "",
-
-        roleLevel: -1,
+        password: "",
     });
 
     const addRole = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/storeemployeeroles`, role, {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                })
-                .then(() => {
-                    openSnackbar("success", "Role added successfully!");
-                    navigate("/roles");
+                .post(`${BACKEND_API_URL}/users/login`, user)
+                .then((response) => {
+                    console.log(response);
+                    setAuthToken(response.data.token);
+                    setAccount(response.data.user);
+
+                    openSnackbar("success", "Logged in successfully!");
+                    navigate("/");
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to add role!\n" +
+                        "Failed to log in!\n" +
                             (String(reason.response?.data).length > 255
                                 ? reason.message
                                 : reason.response?.data)
@@ -60,10 +59,7 @@ export const RoleAdd = () => {
                 });
         } catch (error) {
             console.log(error);
-            openSnackbar(
-                "error",
-                "Failed to add role due to an unknown error!"
-            );
+            openSnackbar("error", "Failed to log in due to an unknown error!");
         }
     };
 
@@ -73,9 +69,10 @@ export const RoleAdd = () => {
                 <CardContent>
                     <Box display="flex" alignItems="flex-start" sx={{ mb: 4 }}>
                         <IconButton
+                            disabled
                             component={Link}
                             sx={{ mb: 2, mr: 3 }}
-                            to={`/roles`}
+                            to={``}
                         >
                             <ArrowBackIcon />
                         </IconButton>
@@ -87,10 +84,10 @@ export const RoleAdd = () => {
                                 marginTop: -4,
                             }}
                         >
-                            Add Role
+                            Log In
                         </h1>
                     </Box>
-                    <form id="addRoleForm" onSubmit={addRole}>
+                    <form id="loginForm" onSubmit={addRole}>
                         <TextField
                             id="name"
                             label="Name"
@@ -98,48 +95,31 @@ export const RoleAdd = () => {
                             fullWidth
                             sx={{ mb: 2 }}
                             onChange={(event) =>
-                                setRole({
-                                    ...role,
+                                setUser({
+                                    ...user,
                                     name: event.target.value,
                                 })
                             }
                         />
                         <TextField
-                            id="description"
-                            label="Description"
+                            id="password"
+                            label="Password"
                             variant="outlined"
+                            type="password"
                             fullWidth
                             sx={{ mb: 2 }}
                             onChange={(event) =>
-                                setRole({
-                                    ...role,
-                                    description: event.target.value,
-                                })
-                            }
-                        />
-
-                        <TextField
-                            id="roleLevel"
-                            label="Level"
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            onChange={(event) =>
-                                setRole({
-                                    ...role,
-                                    roleLevel: Number(event.target.value),
+                                setUser({
+                                    ...user,
+                                    password: event.target.value,
                                 })
                             }
                         />
                     </form>
                 </CardContent>
                 <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
-                    <Button
-                        variant="contained"
-                        type="submit"
-                        form="addRoleForm"
-                    >
-                        Add Role
+                    <Button variant="contained" type="submit" form="loginForm">
+                        Log In
                     </Button>
                 </CardActions>
             </Card>

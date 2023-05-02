@@ -13,6 +13,7 @@ import axios, { AxiosError } from "axios";
 import { BACKEND_API_URL } from "../../constants";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const EmployeeDelete = () => {
     const navigate = useNavigate();
@@ -23,7 +24,11 @@ export const EmployeeDelete = () => {
         event.preventDefault();
         try {
             await axios
-                .delete(`${BACKEND_API_URL}/storeemployees/${employeeId}`)
+                .delete(`${BACKEND_API_URL}/storeemployees/${employeeId}`, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Employee deleted successfully!");
                     navigate("/employees");
@@ -32,7 +37,10 @@ export const EmployeeDelete = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to delete employee!\n" + reason.response?.data
+                        "Failed to delete employee!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {

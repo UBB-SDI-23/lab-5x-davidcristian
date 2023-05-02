@@ -22,6 +22,7 @@ import axios, { AxiosError } from "axios";
 import { debounce } from "lodash";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const StoreAdd = () => {
     const navigate = useNavigate();
@@ -48,7 +49,11 @@ export const StoreAdd = () => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/stores/`, store)
+                .post(`${BACKEND_API_URL}/stores`, store, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Store added successfully!");
                     navigate("/stores");
@@ -57,7 +62,10 @@ export const StoreAdd = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to add store!\n" + reason.response?.data
+                        "Failed to add store!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {
