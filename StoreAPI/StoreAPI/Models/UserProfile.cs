@@ -20,5 +20,7 @@
         public virtual DateTime? Birthday { get; set; }
         public virtual Gender Gender { get; set; }
         public virtual MaritalStatus MaritalStatus { get; set; }
+
+        public virtual long PagePreference { get; set; }
     }
 }

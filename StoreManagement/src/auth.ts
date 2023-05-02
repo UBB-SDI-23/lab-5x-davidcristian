@@ -18,3 +18,9 @@ export const setAccount = (newAccount: User | null) => {
 export const getAccount = () => {
     return account;
 }
+
+export const updatePref = (pref: number) => {
+    if (account && account.userProfile) {
+        account.userProfile.pagePreference = pref;
+    }
+}

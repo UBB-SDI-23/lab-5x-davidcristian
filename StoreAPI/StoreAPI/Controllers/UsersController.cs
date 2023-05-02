@@ -77,48 +77,32 @@ namespace StoreAPI.Controllers
         }
 
         // POST: api/Users/register/confirm
-        [HttpPost("register/confirm/{token}")]
+        [HttpPost("register/confirm/{code}")]
         [AllowAnonymous]
-        public async Task<ActionResult> ConfirmAccount(string token)
+        public async Task<ActionResult> ConfirmAccount(string code)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+            var confirmationCode = await _context.ConfirmationCodes
+                .SingleOrDefaultAsync(cc => cc.Code == code);
+            if (confirmationCode == null)
+                return BadRequest("Invalid confirmation code.");
 
-            try
-            {
-                var tokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
+            if (confirmationCode.Used)
+                return BadRequest("Confirmation code has already been used.");
+            if (confirmationCode.Expiration < DateTime.UtcNow)
+                return BadRequest("Confirmation code has expired.");
 
-                SecurityToken validatedToken;
-                var claimsPrincipal = tokenHandler.ValidateToken(token, tokenValidationParameters, out validatedToken);
+            var user = await _context.Users.FindAsync(confirmationCode.UserId);
+            if (user == null)
+                return BadRequest("Invalid confirmation code.");
 
-                if (claimsPrincipal.HasClaim(c => c.Type == ClaimTypes.Role && c.Value == "Confirm"))
-                {
-                    var userId = long.Parse(claimsPrincipal.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty);
-                    var user = await _context.Users.FindAsync(userId);
+            if (user.AccessLevel > 0)
+                return BadRequest("Account has already been confirmed.");
 
-                    if (user != null && user.AccessLevel == 0)
-                    {
-                        user.AccessLevel = 1;
-                        await _context.SaveChangesAsync();
+            user.AccessLevel = 1;
+            confirmationCode.Used = true;
+            await _context.SaveChangesAsync();
 
-                        return Ok("Account successfully confirmed.");
-                    }
-                }
-            }
-            catch (SecurityTokenException)
-            {
-                return BadRequest("Invalid confirmation token.");
-            }
-
-            return BadRequest("Unable to confirm the account.");
+            return Ok("Account successfully confirmed.");
         }
 
         // POST: api/Users/login
@@ -133,10 +117,11 @@ namespace StoreAPI.Controllers
             List<string> possiblePasswords = new()
             {
                 hashedPassword,
-                hashedPassword + "\r" // TODO: Fix this happening when generating the data
+                hashedPassword + "\r"
             };
 
             var user = await _context.Users
+                .Include(u => u.UserProfile)
                 .SingleOrDefaultAsync(u => u.Name == userDTO.Name && u.Password != null && possiblePasswords.Contains(u.Password));
             if (user == null)
                 return Unauthorized("Invalid username or password");
@@ -146,17 +131,16 @@ namespace StoreAPI.Controllers
                 return Unauthorized("User is not confirmed");
 
             var token = GenerateJwtToken(user);
-            userDTO.Id = user.Id;
-            userDTO.Password = null;
+            user.Password = null;
 
             return new
             {
-                user = userDTO,
+                user,
                 token
             };
         }
 
-        private string HashPassword(string password)
+        private static string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
@@ -180,22 +164,36 @@ namespace StoreAPI.Controllers
             return tokenHandler.WriteToken(token);
         }
 
+        private static string GenerateRandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
         private string GenerateConfirmationToken(User user)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            string code = string.Empty;
+            bool exists = true;
+            
+            while (exists)
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString()),
-                    new Claim(ClaimTypes.Role, "Confirm")
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(10),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                code = GenerateRandomString(8);
+                exists = _context.ConfirmationCodes.Any(cc => cc.Code == code);
+            }
+
+            var confirmationCode = new ConfirmationCode
+            {
+                UserId = user.Id,
+                Code = code,
+                Expiration = DateTime.UtcNow.AddMinutes(10),
+                Used = false
             };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+
+            _context.ConfirmationCodes.Add(confirmationCode);
+            _context.SaveChanges();
+
+            return code;
         }
 
         // GET: api/Users/count/10
@@ -214,7 +212,7 @@ namespace StoreAPI.Controllers
         [HttpGet("{page}/{pageSize}")]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers(int page = 0, int pageSize = 10)
         {
-            if (_context.StoreEmployeeRoles == null)
+            if (_context.Users == null)
                 return NotFound();
 
             return await _context.Users
@@ -222,6 +220,28 @@ namespace StoreAPI.Controllers
                 .Skip(page * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+
+        // PATCH: api/Users/0/10
+        [HttpPatch("{id}/{pref}")]
+        public async Task<ActionResult<UserDTO>> PatchPreference(long id, long pref)
+        {
+            if (_context.Users == null)
+                return NotFound();
+           
+            var user = await _context.Users
+                .Include(x => x.UserProfile)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (user == null)
+                return NotFound();
+
+            user.UserProfile.PagePreference = pref;
+            await _context.SaveChangesAsync();
+
+            var userDTO = UserToDTO(user);
+            userDTO.Password = null;
+
+            return userDTO;
         }
 
         // GET: api/Users

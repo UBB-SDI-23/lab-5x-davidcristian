@@ -105,7 +105,7 @@ function App() {
                             element={<UserRegister />}
                         />
                         <Route
-                            path="/users/register/confirm/:token"
+                            path="/users/register/confirm/:code"
                             element={<UserRegisterConfirm />}
                         />
                         <Route path="/users/login" element={<UserLogin />} />

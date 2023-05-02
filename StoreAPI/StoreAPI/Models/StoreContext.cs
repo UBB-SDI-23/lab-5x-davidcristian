@@ -22,9 +22,18 @@ namespace StoreAPI.Models
             modelBuilder.Entity<UserProfile>()
                 .HasKey(u => u.UserId);
 
+            // Set PagePreference default value to 5
+            modelBuilder.Entity<UserProfile>()
+                .Property(u => u.PagePreference)
+                .HasDefaultValue(5);
+
             // Define unique constraints
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<ConfirmationCode>()
+                .HasIndex(u => u.Code)
                 .IsUnique();
 
             // Define one-to-one relationships
@@ -59,6 +68,12 @@ namespace StoreAPI.Models
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             // Assign users to entities
+            modelBuilder.Entity<ConfirmationCode>()
+                .HasOne(u => u.User)
+                .WithMany()
+                .HasForeignKey(u => u.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
             modelBuilder.Entity<StoreEmployeeRole>()
                 .HasOne(u => u.User)
                 .WithMany()
@@ -83,6 +98,8 @@ namespace StoreAPI.Models
                 .HasForeignKey(u => u.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
         }
+
+        public virtual DbSet<ConfirmationCode> ConfirmationCodes { get; set; } = null!;
 
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<UserProfile> UserProfiles { get; set; } = null!;

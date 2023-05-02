@@ -33,8 +33,6 @@ export const EmployeeFilter = () => {
 
     const [salaryText, setSalaryText] = useState("3000");
 
-    // TODO: use axios everywhere
-    // Fix Circular Progress bar in this file
     async function fetchEmployees(minSalary: number) {
         setLoading(true);
         const response = await axios.get<Employee[]>(
@@ -48,7 +46,10 @@ export const EmployeeFilter = () => {
 
         const data = response.data;
         setEmployees(data);
-        setLoading(false);
+
+        setTimeout(() => {
+            setLoading(false);
+        }, 500);
     }
 
     function parseData() {

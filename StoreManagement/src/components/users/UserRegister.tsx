@@ -49,7 +49,15 @@ export const UserRegister = () => {
                 .then((response) => {
                     console.log(response);
 
-                    openSnackbar("success", "Registered successfully!");
+                    openSnackbar(
+                        "success",
+                        "Registered successfully!" +
+                            "\n" +
+                            "Please confirm your account using this code: " +
+                            response.data.token +
+                            "\n" +
+                            "This code will expire in 10 minutes."
+                    );
                     navigate(`/users/register/confirm/${response.data.token}`);
                 })
                 .catch((reason: AxiosError) => {

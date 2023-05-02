@@ -5,9 +5,10 @@ import {
     CardContent,
     IconButton,
     Button,
+    TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import { User } from "../../models/User";
@@ -16,13 +17,17 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Employee, Gender } from "../../models/Employee";
 import { MaritalStatus } from "../../models/UserProfile";
+import { SnackbarContext } from "../SnackbarContext";
 
-import { getAuthToken } from "../../auth";
-import axios from "axios";
+import { getAuthToken, updatePref } from "../../auth";
+import axios, { AxiosError } from "axios";
 
 export const UserDetails = () => {
+    const openSnackbar = useContext(SnackbarContext);
     const { userId } = useParams();
     const [user, setUser] = useState<User>();
+
+    const [preferenceText, setPreferenceText] = useState("5");
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -37,9 +42,73 @@ export const UserDetails = () => {
 
             const user = response.data;
             setUser(user);
+            setPreferenceText(
+                user.userProfile?.pagePreference?.toString() ?? "5"
+            );
         };
         fetchUser();
     }, [userId]);
+
+    const savePreference = async (pref: number) => {
+        try {
+            await axios
+                .patch(
+                    `${BACKEND_API_URL}/users/${userId}/${pref}`,
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then(() => {
+                    openSnackbar("success", "Preference updated successfully!");
+                    // todo: fix some inconsistencies with new page size
+                    if (user && user.userProfile) {
+                        user.userProfile.pagePreference = pref;
+                    }
+
+                    updatePref(pref);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to update preference!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to update preference due to an unknown error!"
+            );
+        }
+    };
+
+    function parseData() {
+        const intValue = parseInt(preferenceText, 10);
+
+        if (intValue > 0 && intValue <= 100) {
+            savePreference(intValue);
+        } else {
+            openSnackbar("error", "Please enter a valid number (0 < n <= 100)");
+        }
+    }
+
+    function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const value = event.target.value.replace(/[^\d]/g, "");
+        setPreferenceText(value);
+    }
+
+    function handleInputKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
+        if (event.key === "Enter") {
+            parseData();
+        }
+    }
 
     return (
         <Container>
@@ -85,6 +154,43 @@ export const UserDetails = () => {
                                 ? ""
                                 : MaritalStatus[user.userProfile.gender]}
                         </p>
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                marginTop: 16,
+                                marginBottom: 16,
+                            }}
+                        >
+                            <p
+                                style={{
+                                    marginRight: 8,
+                                    userSelect: "none",
+                                }}
+                            >
+                                {`Page Preference: `}
+                            </p>
+                            <TextField
+                                value={preferenceText}
+                                type="text"
+                                inputProps={{
+                                    min: 1,
+                                    style: { textAlign: "center" },
+                                }}
+                                onChange={handleInputChange}
+                                onKeyPress={handleInputKeyPress}
+                                variant="outlined"
+                                size="small"
+                                style={{
+                                    width: 100,
+                                    marginRight: 16,
+                                }}
+                            />
+                            <Button variant="contained" onClick={parseData}>
+                                Save
+                            </Button>
+                        </div>
+
                         <p>User insertion stats:</p>
                         <ul style={{ marginBottom: 0 }}>
                             <li key={0}>Roles: {user?.roleCount}</li>

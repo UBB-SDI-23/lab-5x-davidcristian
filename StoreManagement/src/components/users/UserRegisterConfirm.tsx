@@ -13,28 +13,21 @@ import axios, { AxiosError } from "axios";
 import { BACKEND_API_URL } from "../../constants";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
-import jwt_decode from "jwt-decode";
-
-interface DecodedToken {
-    exp: number;
-}
 
 export const UserRegisterConfirm = () => {
     const navigate = useNavigate();
     const openSnackbar = useContext(SnackbarContext);
 
-    const { token } = useParams();
-    const decodedToken = jwt_decode<DecodedToken>(token ?? "");
-    const expirationDate = new Date(decodedToken.exp * 1000).toLocaleString();
+    const { code } = useParams();
 
     const handleConfirm = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/users/register/confirm/${token}`)
+                .post(`${BACKEND_API_URL}/users/register/confirm/${code}`)
                 .then(() => {
                     openSnackbar("success", "Account confirmed successfully!");
-                    navigate("/login");
+                    navigate("/users/login");
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
@@ -68,7 +61,7 @@ export const UserRegisterConfirm = () => {
                         <IconButton
                             component={Link}
                             sx={{ mr: 3 }}
-                            to={`/register`}
+                            to={`/users/register`}
                         >
                             <ArrowBackIcon />
                         </IconButton>
@@ -88,7 +81,7 @@ export const UserRegisterConfirm = () => {
                         Would you like to confirm your account?
                         <br />
                         <br />
-                        Token expires on: {expirationDate}
+                        Code: {code}
                     </p>
                 </CardContent>
                 <CardActions

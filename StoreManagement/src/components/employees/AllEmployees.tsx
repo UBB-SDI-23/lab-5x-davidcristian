@@ -22,14 +22,14 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
-import { getAuthToken } from "../../auth";
+import { getAccount, getAuthToken } from "../../auth";
 import axios from "axios";
 
 export const AllEmployees = () => {
     const [loading, setLoading] = useState(false);
     const [employees, setEmployees] = useState<Employee[]>([]);
 
-    const pageSize = 5;
+    const [pageSize, setPageSize] = useState(5);
     const [pageIndex, setPageIndex] = useState(0);
     const [totalPages, setTotalPages] = useState(999999);
 
@@ -45,6 +45,14 @@ export const AllEmployees = () => {
 
         setSorting({ key: key, ascending: ascending });
     }
+
+    useEffect(() => {
+        const account = getAccount();
+
+        if (account && account.userProfile) {
+            setPageSize(account.userProfile.pagePreference ?? 5);
+        }
+    }, []);
 
     useEffect(() => {
         if (employees.length === 0) {

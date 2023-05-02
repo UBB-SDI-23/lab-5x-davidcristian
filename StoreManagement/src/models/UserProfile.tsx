@@ -19,4 +19,6 @@ export interface UserProfile {
     birthday?: string;
     gender: Gender;
     maritalStatus: MaritalStatus;
+
+    pagePreference?: number;
 }

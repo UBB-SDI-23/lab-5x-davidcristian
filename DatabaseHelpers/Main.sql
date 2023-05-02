@@ -6,6 +6,7 @@ ALTER TABLE StoreShifts DROP CONSTRAINT FK_StoreShifts_Stores_StoreId;
 ALTER TABLE StoreShifts DROP CONSTRAINT FK_StoreShifts_StoreEmployees_StoreEmployeeId;
 ALTER TABLE StoreEmployees DROP CONSTRAINT FK_StoreEmployees_StoreEmployeeRoles_StoreEmployeeRoleId;
 
+ALTER TABLE ConfirmationCodes DROP CONSTRAINT FK_ConfirmationCodes_Users_UserId;
 ALTER TABLE UserProfiles DROP CONSTRAINT FK_UserProfiles_Users_UserId;
 
 ALTER TABLE StoreShifts DROP CONSTRAINT FK_StoreShifts_Users_UserId;
@@ -14,6 +15,7 @@ ALTER TABLE StoreEmployees DROP CONSTRAINT FK_StoreEmployees_Users_UserId;
 ALTER TABLE StoreEmployeeRoles DROP CONSTRAINT FK_StoreEmployeeRoles_Users_UserId;
 GO
 
+TRUNCATE TABLE ConfirmationCodes
 TRUNCATE TABLE UserProfiles
 TRUNCATE TABLE Users
 
@@ -65,6 +67,8 @@ GO
 
 ALTER TABLE UserProfiles
 ADD CONSTRAINT FK_UserProfiles_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id);
+ALTER TABLE ConfirmationCodes
+ADD CONSTRAINT FK_ConfirmationCodes_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id);
 
 ALTER TABLE StoreEmployeeRoles
 ADD CONSTRAINT FK_StoreEmployeeRoles_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (ID);
@@ -82,3 +86,6 @@ SELECT COUNT(*) AS 'Roles' FROM StoreEmployeeRoles
 SELECT COUNT(*) AS 'Employees' FROM StoreEmployees
 SELECT COUNT(*) AS 'Stores' FROM Stores
 SELECT COUNT(*) AS 'Shifts' FROM StoreShifts
+
+SELECT * FROM ConfirmationCodes
+SELECT * FROM Users where name='aaa'

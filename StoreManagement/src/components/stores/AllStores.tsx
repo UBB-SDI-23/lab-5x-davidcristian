@@ -23,15 +23,23 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import axios from "axios";
-import { getAuthToken } from "../../auth";
+import { getAccount, getAuthToken } from "../../auth";
 
 export const AllStores = () => {
     const [loading, setLoading] = useState(false);
     const [stores, setStores] = useState<Store[]>([]);
 
-    const pageSize = 5;
+    const [pageSize, setPageSize] = useState(5);
     const [pageIndex, setPageIndex] = useState(0);
     const [totalPages, setTotalPages] = useState(999999);
+
+    useEffect(() => {
+        const account = getAccount();
+
+        if (account && account.userProfile) {
+            setPageSize(account.userProfile.pagePreference ?? 5);
+        }
+    }, []);
 
     async function fetchStores(page: number): Promise<Store[]> {
         const response = await axios.get<Store[]>(

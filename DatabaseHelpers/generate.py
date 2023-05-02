@@ -1,9 +1,10 @@
+import os
 import csv
 import random
+import hashlib
 from enum import Enum
 from faker import Faker
 from multiprocessing import Process
-import hashlib
 
 fake = Faker()
 MIN_ROLE_LEVEL = 1
@@ -15,6 +16,7 @@ STORES_COUNT = 1_000_000
 STORE_SHIFTS_COUNT = 10_000_000
 
 USERS_COUNT = 10_000
+PAGE_PREFERENCE = 5
 
 
 class Gender(Enum):
@@ -45,6 +47,9 @@ password = hashlib.sha256(b"123").hexdigest()
 def create_users_csv():
     print("Begin create_users_csv")
 
+    if os.path.exists("users.csv"):
+        os.remove("users.csv")
+
     with open("users.csv", "w", newline="") as f:
         writer = csv.writer(f)
 
@@ -68,6 +73,9 @@ def create_user_profiles_csv():
     genders = list(Gender)
     marital_statuses = list(MaritalStatus)
 
+    if os.path.exists("user_profiles.csv"):
+        os.remove("user_profiles.csv")
+
     with open("user_profiles.csv", "w", newline="") as f:
         writer = csv.writer(f)
 
@@ -78,13 +86,18 @@ def create_user_profiles_csv():
             gender = random.choice(genders).value
             marital_status = random.choice(marital_statuses).value
 
-            writer.writerow([i, bio, location, birthday, gender, marital_status])
+            writer.writerow(
+                [i, bio, location, birthday, gender, marital_status, PAGE_PREFERENCE]
+            )
 
     print("End create_user_profiles_csv")
 
 
 def create_employee_roles_csv():
     print("Begin create_employee_roles_csv")
+
+    if os.path.exists("employee_roles.csv"):
+        os.remove("employee_roles.csv")
 
     with open("employee_roles.csv", "w", newline="") as f:
         writer = csv.writer(f)
@@ -103,6 +116,9 @@ def create_employee_roles_csv():
 def create_employees_csv():
     print("Begin create_employees_csv")
     genders = list(Gender)
+
+    if os.path.exists("employees.csv"):
+        os.remove("employees.csv")
 
     with open("employees.csv", "w", newline="") as f:
         writer = csv.writer(f)
@@ -141,6 +157,9 @@ def create_employees_csv():
 def create_stores_csv():
     print("Begin create_stores_csv")
     categories = list(StoreCategory)
+
+    if os.path.exists("stores.csv"):
+        os.remove("stores.csv")
 
     with open("stores.csv", "w", newline="") as f:
         writer = csv.writer(f)
@@ -184,6 +203,9 @@ def create_stores_csv():
 
 def create_store_shifts_csv():
     print("Begin create_store_shifts_csv")
+
+    if os.path.exists("store_shifts.csv"):
+        os.remove("store_shifts.csv")
 
     unique_shifts = set()
     for _ in range(STORE_SHIFTS_COUNT):
