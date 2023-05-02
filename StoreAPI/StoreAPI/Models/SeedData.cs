@@ -411,8 +411,6 @@ public static class SeedData
     {
         using (var context = new StoreContext(serviceProvider.GetRequiredService<DbContextOptions<StoreContext>>()))
         {
-            return;
-
             SeedEmployeeRoles(context);
             SeedEmployees(context);
 
