@@ -11,7 +11,7 @@ namespace StoreAPI.Validators
             List<string> errors = new List<string>();
 
             if (employee == null)
-                errors.Add("Employee must not be null.");
+                return "Employee must not be null.";
 
             if (employee.FirstName == null || employee.FirstName.Length < 3)
                 errors.Add("First name must have a length greater than 2 characters.");
