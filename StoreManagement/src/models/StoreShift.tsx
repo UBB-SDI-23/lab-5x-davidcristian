@@ -1,5 +1,6 @@
 import { Employee } from "./Employee";
 import { Store } from "./Store";
+import { User } from "./User";
 
 export interface StoreShift {
     startDate?: string;
@@ -10,4 +11,7 @@ export interface StoreShift {
 
     store?: Store;
     storeEmployee?: Employee;
+
+    userId?: number;
+    user?: User;
 }

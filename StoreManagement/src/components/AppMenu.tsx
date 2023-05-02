@@ -15,6 +15,9 @@ import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import ShieldIcon from "@mui/icons-material/Shield";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
+import KeyIcon from "@mui/icons-material/Key";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import { getAccount } from "../auth";
 
 export const AppMenu = () => {
     const location = useLocation();
@@ -50,6 +53,7 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<PersonSearchIcon />}
+                        disabled={getAccount() === null}
                     >
                         Filter Employees
                     </Button>
@@ -63,6 +67,7 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<EmojiEmotionsIcon />}
+                        disabled={getAccount() === null}
                     >
                         Employees
                     </Button>
@@ -76,6 +81,7 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<ShieldIcon />}
+                        disabled={getAccount() === null}
                     >
                         Roles
                     </Button>
@@ -89,6 +95,7 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<LocalOfferIcon />}
+                        disabled={getAccount() === null}
                     >
                         Stores
                     </Button>
@@ -102,6 +109,7 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<AccessTimeFilledIcon />}
+                        disabled={getAccount() === null}
                     >
                         Shifts
                     </Button>
@@ -117,6 +125,7 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<AttachMoneyIcon />}
+                        disabled={getAccount() === null}
                     >
                         Salary Report
                     </Button>
@@ -132,9 +141,47 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<GroupIcon />}
+                        disabled={getAccount() === null}
                     >
                         Headcount Report
                     </Button>
+
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    <Button
+                        variant="text"
+                        to={`/users/${getAccount()?.id}/details`}
+                        component={Link}
+                        color="inherit"
+                        sx={{ mr: 2 }}
+                        disabled={getAccount() === null}
+                    >
+                        {getAccount()?.name}
+                    </Button>
+
+                    <IconButton
+                        component={Link}
+                        to="/users/login"
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="school"
+                        sx={{ mr: 2 }}
+                    >
+                        <KeyIcon />
+                    </IconButton>
+
+                    <IconButton
+                        component={Link}
+                        to="/users/register"
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="school"
+                        sx={{ mr: 0 }}
+                    >
+                        <AssignmentIcon />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
         </Box>

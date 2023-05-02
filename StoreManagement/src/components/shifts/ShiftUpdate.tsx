@@ -22,6 +22,7 @@ import { BACKEND_API_URL } from "../../constants";
 import { StoreShift } from "../../models/StoreShift";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const ShiftUpdate = () => {
     const navigate = useNavigate();
@@ -44,7 +45,12 @@ export const ShiftUpdate = () => {
         setLoading(true);
         const fetchShift = async () => {
             const response = await axios.get<StoreShift>(
-                `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`
+                `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
             const data = response.data;
 
@@ -74,7 +80,12 @@ export const ShiftUpdate = () => {
             await axios
                 .put(
                     `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`,
-                    shift
+                    shift,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
                 )
                 .then(() => {
                     openSnackbar("success", "Shift updated successfully!");
@@ -84,7 +95,10 @@ export const ShiftUpdate = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to update shift!\n" + reason.response?.data
+                        "Failed to update shift!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {

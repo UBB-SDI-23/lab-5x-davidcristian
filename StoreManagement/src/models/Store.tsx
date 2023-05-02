@@ -1,4 +1,5 @@
 import { StoreShift } from "./StoreShift";
+import { User } from "./User";
 
 export enum StoreCategory {
     General,
@@ -26,4 +27,7 @@ export interface Store {
     closeDate?: string;
 
     storeShifts?: StoreShift[];
+
+    userId?: number;
+    user?: User;
 }

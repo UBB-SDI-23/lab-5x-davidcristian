@@ -15,6 +15,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
+import axios from "axios";
+import { getAuthToken } from "../../auth";
 
 export const EmployeeDetails = () => {
     const { employeeId } = useParams();
@@ -22,10 +24,15 @@ export const EmployeeDetails = () => {
 
     useEffect(() => {
         const fetchEmployee = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/storeemployees/${employeeId}`
+            const response = await axios.get<Employee>(
+                `${BACKEND_API_URL}/storeemployees/${employeeId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const employee = await response.json();
+            const employee = response.data;
             setEmployee(employee);
         };
         fetchEmployee();
@@ -76,8 +83,8 @@ export const EmployeeDetails = () => {
                         {employee?.storeShifts?.length ? (
                             <ul style={{ marginBottom: 0 }}>
                                 {employee?.storeShifts?.map((shift) => (
-                                    <li key={shift.store.id}>
-                                        {shift.store.name} -{" "}
+                                    <li key={shift.store?.id}>
+                                        {shift.store?.name} -{" "}
                                         {formatDate(shift.startDate)} -{" "}
                                         {formatDate(shift.endDate)}
                                     </li>

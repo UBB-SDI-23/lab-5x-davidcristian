@@ -22,6 +22,8 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import axios from "axios";
+import { getAuthToken } from "../../auth";
 
 export const AllShifts = () => {
     const [loading, setLoading] = useState(false);
@@ -29,20 +31,32 @@ export const AllShifts = () => {
 
     const pageSize = 5;
     const [pageIndex, setPageIndex] = useState(0);
-    const [totalPages, setTotalPages] = useState(999999);
+    const [totalPages, setTotalPages] = useState(9999999);
 
-    function fetchShifts(page: number): Promise<StoreShift[]> {
-        return fetch(
-            `${BACKEND_API_URL}/storeshifts/pages/${page}/${pageSize}`
-        ).then((response) => response.json());
+    async function fetchShifts(page: number): Promise<StoreShift[]> {
+        const response = await axios.get<StoreShift[]>(
+            `${BACKEND_API_URL}/storeshifts/pages/${page}/${pageSize}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${getAuthToken()}`,
+                },
+            }
+        );
+
+        return response.data;
     }
 
     useEffect(() => {
         const fetchPageCount = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/storeshifts/count/${pageSize}`
+            const response = await axios.get<number>(
+                `${BACKEND_API_URL}/storeshifts/count/${pageSize}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const count = await response.json();
+            const count = response.data;
             setTotalPages(count);
         };
         fetchPageCount();
@@ -148,6 +162,15 @@ export const AllShifts = () => {
                                     End Date
                                 </TableCell>
                                 <TableCell
+                                    align="left"
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        userSelect: "none",
+                                    }}
+                                >
+                                    User
+                                </TableCell>
+                                <TableCell
                                     align="center"
                                     style={{
                                         whiteSpace: "nowrap",
@@ -176,6 +199,14 @@ export const AllShifts = () => {
                                     </TableCell>
                                     <TableCell align="left">
                                         {formatDate(shift.endDate)}
+                                    </TableCell>
+                                    <TableCell align="left">
+                                        <Link
+                                            to={`/users/${shift.user?.id}/details`}
+                                            title="View user details"
+                                        >
+                                            {shift.user?.name}
+                                        </Link>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box

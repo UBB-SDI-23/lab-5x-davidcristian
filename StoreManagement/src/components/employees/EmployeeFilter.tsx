@@ -24,6 +24,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const EmployeeFilter = () => {
     const openSnackbar = useContext(SnackbarContext);
@@ -37,7 +38,12 @@ export const EmployeeFilter = () => {
     async function fetchEmployees(minSalary: number) {
         setLoading(true);
         const response = await axios.get<Employee[]>(
-            `${BACKEND_API_URL}/storeemployees/Filter?minSalary=${minSalary}`
+            `${BACKEND_API_URL}/storeemployees/Filter?minSalary=${minSalary}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${getAuthToken()}`,
+                },
+            }
         );
 
         const data = response.data;

@@ -23,7 +23,11 @@ export const RoleDelete = () => {
         event.preventDefault();
         try {
             await axios
-                .delete(`${BACKEND_API_URL}/storeemployeeroles/${roleId}`)
+                .delete(`${BACKEND_API_URL}/storeemployeeroles/${roleId}`, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Role deleted successfully!");
                     navigate("/roles");
@@ -32,7 +36,10 @@ export const RoleDelete = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to delete role!\n" + reason.response?.data
+                        "Failed to delete role!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {

@@ -23,6 +23,7 @@ import { BACKEND_API_URL, getEnumValues } from "../../constants";
 import { debounce } from "lodash";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const StoreUpdate = () => {
     const navigate = useNavigate();
@@ -50,11 +51,16 @@ export const StoreUpdate = () => {
 
     useEffect(() => {
         const fetchStore = async () => {
-            const response = await fetch(
-                `${BACKEND_API_URL}/stores/${storeId}/`
+            const response = await axios.get<Store>(
+                `${BACKEND_API_URL}/stores/${storeId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
 
-            const store = await response.json();
+            const store = response.data;
             setStore({
                 id: store.id,
                 name: store.name,
@@ -82,7 +88,11 @@ export const StoreUpdate = () => {
         event.preventDefault();
         try {
             await axios
-                .put(`${BACKEND_API_URL}/stores/${storeId}/`, store)
+                .put(`${BACKEND_API_URL}/stores/${storeId}`, store, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Store updated successfully!");
                     navigate("/stores");
@@ -91,7 +101,10 @@ export const StoreUpdate = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to update store!\n" + reason.response?.data
+                        "Failed to update store!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {

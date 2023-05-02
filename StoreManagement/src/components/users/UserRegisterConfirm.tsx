@@ -13,31 +13,34 @@ import axios, { AxiosError } from "axios";
 import { BACKEND_API_URL } from "../../constants";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken } from "../../auth";
+import jwt_decode from "jwt-decode";
 
-export const StoreDelete = () => {
+interface DecodedToken {
+    exp: number;
+}
+
+export const UserRegisterConfirm = () => {
     const navigate = useNavigate();
     const openSnackbar = useContext(SnackbarContext);
-    const { storeId } = useParams();
 
-    const handleDelete = async (event: { preventDefault: () => void }) => {
+    const { token } = useParams();
+    const decodedToken = jwt_decode<DecodedToken>(token ?? "");
+    const expirationDate = new Date(decodedToken.exp * 1000).toLocaleString();
+
+    const handleConfirm = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
             await axios
-                .delete(`${BACKEND_API_URL}/stores/${storeId}`, {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                })
+                .post(`${BACKEND_API_URL}/users/register/confirm/${token}`)
                 .then(() => {
-                    openSnackbar("success", "Store deleted successfully!");
-                    navigate("/stores");
+                    openSnackbar("success", "Account confirmed successfully!");
+                    navigate("/login");
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to delete store!\n" +
+                        "Failed to confirm account!\n" +
                             (String(reason.response?.data).length > 255
                                 ? reason.message
                                 : reason.response?.data)
@@ -47,14 +50,14 @@ export const StoreDelete = () => {
             console.log(error);
             openSnackbar(
                 "error",
-                "Failed to delete store due to an unknown error!"
+                "Failed to confirm account due to an unknown error!"
             );
         }
     };
 
     const handleCancel = (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        navigate("/stores");
+        navigate("/");
     };
 
     return (
@@ -65,7 +68,7 @@ export const StoreDelete = () => {
                         <IconButton
                             component={Link}
                             sx={{ mr: 3 }}
-                            to={`/stores`}
+                            to={`/register`}
                         >
                             <ArrowBackIcon />
                         </IconButton>
@@ -77,13 +80,15 @@ export const StoreDelete = () => {
                                 marginLeft: -64,
                             }}
                         >
-                            Delete Store
+                            Confirm Account
                         </h1>
                     </Box>
 
                     <p style={{ marginBottom: 0, textAlign: "center" }}>
-                        Are you sure you want to delete this store? This cannot
-                        be undone!
+                        Would you like to confirm your account?
+                        <br />
+                        <br />
+                        Token expires on: {expirationDate}
                     </p>
                 </CardContent>
                 <CardActions
@@ -96,19 +101,19 @@ export const StoreDelete = () => {
                 >
                     <Button
                         variant="contained"
-                        color="error"
+                        color="primary"
                         sx={{ width: 100, mr: 2 }}
-                        onClick={handleDelete}
+                        onClick={handleConfirm}
                     >
                         Yes
                     </Button>
                     <Button
                         variant="contained"
-                        color="primary"
+                        color="error"
                         sx={{ width: 100 }}
                         onClick={handleCancel}
                     >
-                        Cancel
+                        No
                     </Button>
                 </CardActions>
             </Card>

@@ -23,6 +23,7 @@ import { EmployeeRole } from "../../models/EmployeeRole";
 import { debounce } from "lodash";
 import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 export const EmployeeAdd = () => {
     const navigate = useNavigate();
@@ -46,7 +47,11 @@ export const EmployeeAdd = () => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/storeemployees/`, employee)
+                .post(`${BACKEND_API_URL}/storeemployees`, employee, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Employee added successfully!");
                     navigate("/employees");
@@ -55,7 +60,10 @@ export const EmployeeAdd = () => {
                     console.log(reason.message);
                     openSnackbar(
                         "error",
-                        "Failed to add employee!\n" + reason.response?.data
+                        "Failed to add employee!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
                     );
                 });
         } catch (error) {
@@ -70,11 +78,15 @@ export const EmployeeAdd = () => {
     useEffect(() => {
         const fetchEmployeeRoles = async () => {
             try {
-                const response = await fetch(
-                    `${BACKEND_API_URL}/storeemployeeroles/0/10`
+                const response = await axios.get<EmployeeRole[]>(
+                    `${BACKEND_API_URL}/storeemployeeroles/0/10`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
                 );
-                const data = await response.json();
-                setEmployeeRoles(data);
+                setEmployeeRoles(response.data);
             } catch (error) {
                 console.log(error);
             }
@@ -85,9 +97,15 @@ export const EmployeeAdd = () => {
     const fetchSuggestions = async (query: string) => {
         try {
             const response = await axios.get<EmployeeRole[]>(
-                `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`
+                `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                }
             );
-            const data = await response.data;
+
+            const data = response.data;
             const removedDupes = data.filter(
                 (v, i, a) => a.findIndex((v2) => v2.name === v.name) === i
             );

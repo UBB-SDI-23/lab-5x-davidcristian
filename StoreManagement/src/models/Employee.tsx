@@ -1,5 +1,6 @@
 import { EmployeeRole } from "./EmployeeRole";
 import { StoreShift } from "./StoreShift";
+import { User } from "./User";
 
 export enum Gender {
     Female,
@@ -22,5 +23,9 @@ export interface Employee {
 
     storeEmployeeRole?: EmployeeRole;
     storeShifts?: StoreShift[];
+
+    userId?: number;
+    user?: User;
+
     [key: string]: any;
 }

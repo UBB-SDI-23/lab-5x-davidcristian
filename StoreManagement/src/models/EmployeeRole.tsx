@@ -1,4 +1,5 @@
 import { Employee } from "./Employee";
+import { User } from "./User";
 
 export interface EmployeeRole {
     id?: number;
@@ -8,4 +9,7 @@ export interface EmployeeRole {
     roleLevel: number;
 
     storeEmployees?: Employee[];
+
+    userId?: number;
+    user?: User;
 }
