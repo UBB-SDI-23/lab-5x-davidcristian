@@ -3,6 +3,7 @@ import random
 from enum import Enum
 from faker import Faker
 from multiprocessing import Process
+import hashlib
 
 fake = Faker()
 MIN_ROLE_LEVEL = 1
@@ -12,6 +13,8 @@ EMPLOYEE_ROLES_COUNT = 1_000_000
 EMPLOYEES_COUNT = 1_000_000
 STORES_COUNT = 1_000_000
 STORE_SHIFTS_COUNT = 10_000_000
+
+USERS_COUNT = 10_000
 
 
 class Gender(Enum):
@@ -28,6 +31,58 @@ class StoreCategory(Enum):
     Furniture = 4
 
 
+class MaritalStatus(Enum):
+    Single = 0
+    Married = 1
+    Widowed = 2
+    Separated = 3
+    Divorced = 4
+
+
+password = hashlib.sha256(b"123").hexdigest()
+
+
+def create_users_csv():
+    print("Begin create_users_csv")
+
+    with open("users.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+
+        unique_names = set()
+        for i in range(1, USERS_COUNT + 1):
+            while True:
+                name = fake.user_name()
+                if name not in unique_names:
+                    unique_names.add(name)
+                    break
+
+            # password = hashlib.sha256(b"123").hexdigest()
+
+            writer.writerow([i, name, password, 0])
+
+    print("End create_users_csv")
+
+
+def create_user_profiles_csv():
+    print("Begin create_user_profiles_csv")
+    genders = list(Gender)
+    marital_statuses = list(MaritalStatus)
+
+    with open("user_profiles.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+
+        for i in range(1, USERS_COUNT + 1):
+            bio = "\n".join(fake.paragraphs(nb=3))
+            location = fake.city()
+            birthday = fake.date_between(start_date="-60y", end_date="-18y")
+            gender = random.choice(genders).value
+            marital_status = random.choice(marital_statuses).value
+
+            writer.writerow([i, bio, location, birthday, gender, marital_status])
+
+    print("End create_user_profiles_csv")
+
+
 def create_employee_roles_csv():
     print("Begin create_employee_roles_csv")
 
@@ -39,7 +94,8 @@ def create_employee_roles_csv():
             role_desc = "\n".join(fake.paragraphs(nb=3))
             role_level = random.randint(MIN_ROLE_LEVEL, MAX_ROLE_LEVEL)
 
-            writer.writerow([i, role_name, role_desc, role_level])
+            user_id = random.randint(1, USERS_COUNT)
+            writer.writerow([i, role_name, role_desc, role_level, user_id])
 
     print("End create_employee_roles_csv")
 
@@ -64,6 +120,7 @@ def create_employees_csv():
             salary = round(random.uniform(30000, 120000), 2)
             role_id = random.randint(1, EMPLOYEE_ROLES_COUNT)
 
+            user_id = random.randint(1, USERS_COUNT)
             writer.writerow(
                 [
                     i,
@@ -74,6 +131,7 @@ def create_employees_csv():
                     termination_date,
                     salary,
                     role_id,
+                    user_id,
                 ]
             )
 
@@ -103,6 +161,7 @@ def create_stores_csv():
                 else None
             )
 
+            user_id = random.randint(1, USERS_COUNT)
             writer.writerow(
                 [
                     i,
@@ -116,6 +175,7 @@ def create_stores_csv():
                     country,
                     open_date,
                     close_date,
+                    user_id,
                 ]
             )
 
@@ -143,7 +203,9 @@ def create_store_shifts_csv():
         for store_id, employee_id in unique_shifts:
             start_date = fake.date_between(start_date="-5y", end_date="today")
             end_date = fake.date_between(start_date=start_date, end_date="today")
-            writer.writerow([store_id, employee_id, start_date, end_date])
+
+            user_id = random.randint(1, USERS_COUNT)
+            writer.writerow([store_id, employee_id, start_date, end_date, user_id])
 
             current += 1
             if current % 1000000 == 0:
@@ -155,6 +217,8 @@ def create_store_shifts_csv():
 if __name__ == "__main__":
     processes = []
     for func in [
+        create_users_csv,
+        create_user_profiles_csv,
         create_employee_roles_csv,
         create_employees_csv,
         create_stores_csv,
