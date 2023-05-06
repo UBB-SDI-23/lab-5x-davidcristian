@@ -10,6 +10,8 @@ export enum MaritalStatus {
 }
 
 export interface UserProfile {
+    id?: number;
+
     userId?: number;
     user?: User;
 

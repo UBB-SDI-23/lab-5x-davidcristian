@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using StoreAPI.Models;
 using StoreAPI.Validators;
+using System.Security.Claims;
 
 namespace StoreAPI.Controllers
 {
@@ -26,6 +27,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreEmployees/count/10
         [HttpGet("count/{pageSize}")]
+        [AllowAnonymous]
         public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
         {
             int total = await _context.StoreEmployees.CountAsync();
@@ -38,6 +40,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreEmployees/0/10
         [HttpGet("{page}/{pageSize}")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StoreEmployee>>> GetStoreEmployee(int page = 0, int pageSize = 10)
         {
             if (_context.StoreEmployees == null)
@@ -66,6 +69,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreEmployees/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<StoreEmployee>> GetStoreEmployee(long id)
         {
             if (_context.StoreEmployees == null)
@@ -154,6 +158,12 @@ namespace StoreAPI.Controllers
             if (_context.StoreEmployees == null)
                 return Problem("Entity set 'StoreContext.StoreEmployees' is null.");
 
+            // Extract user id from the JWT token
+            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
+            {
+                return Unauthorized("Invalid token.");
+            }
+
             // validate the store employee
             var validationResult = _validator.Validate(employeeDTO);
             if (validationResult != string.Empty)
@@ -177,6 +187,8 @@ namespace StoreAPI.Controllers
 
                 StoreEmployeeRoleId = employeeDTO.StoreEmployeeRoleId,
                 StoreEmployeeRole = storeEmployeeRole,
+
+                UserId = userId
             };
 
             _context.StoreEmployees.Add(storeEmployee);
@@ -214,6 +226,7 @@ namespace StoreAPI.Controllers
 
         // FILTER: api/StoreEmployees/Filter?minSalary=3000
         [HttpGet("Filter")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StoreEmployee>>> FilterStoreEmployees(double minSalary)
         {
             if (_context.StoreEmployees == null)

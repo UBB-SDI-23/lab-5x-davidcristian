@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using StoreAPI.Models;
+using System.Security.Claims;
 
 namespace StoreAPI.Controllers
 {
@@ -23,6 +24,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreShifts/count/10
         [HttpGet("count/{pageSize}")]
+        [AllowAnonymous]
         public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
         {
             int total = await _context.StoreShifts.CountAsync();
@@ -35,6 +37,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreShifts/pages/0/10
         [HttpGet("pages/{page}/{pageSize}")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StoreShift>>> GetStoreShifts(int page = 0, int pageSize = 10)
         {
             if (_context.StoreShifts == null)
@@ -63,6 +66,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreShifts/5/6
         [HttpGet("{sid}/{eid}")]
+        [AllowAnonymous]
         public async Task<ActionResult<StoreShift>> GetStoreShift(long sid, long eid)
         {
             if (_context.StoreShifts == null)
@@ -129,6 +133,12 @@ namespace StoreAPI.Controllers
             if (_context.StoreShifts == null)
                 return Problem("Entity set 'StoreContext.StoreShift' is null.");
 
+            // Extract user id from the JWT token
+            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
+            {
+                return Unauthorized("Invalid token.");
+            }
+
             // search for the store and employee
             var store = await _context.Stores.FindAsync(shiftDTO.StoreId);
             if (store == null)
@@ -148,6 +158,8 @@ namespace StoreAPI.Controllers
                 
                 StoreEmployeeId = shiftDTO.StoreEmployeeId,
                 StoreEmployee = employee,
+
+                UserId = userId,
             };
 
             _context.StoreShifts.Add(storeShift);

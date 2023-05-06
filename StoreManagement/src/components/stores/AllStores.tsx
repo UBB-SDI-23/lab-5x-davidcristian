@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
     CircularProgress,
     Container,
@@ -14,83 +12,29 @@ import {
     Tooltip,
     Button,
     Box,
-    TextField,
 } from "@mui/material";
-import { BACKEND_API_URL, formatDate } from "../../constants";
+
+import { useEffect, useState, useContext } from "react";
+import { Link } from "react-router-dom";
+import { BACKEND_API_URL } from "../../constants";
+import axios, { AxiosError } from "axios";
+import { SnackbarContext } from "../SnackbarContext";
 import { Store, StoreCategory } from "../../models/Store";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import EditIcon from "@mui/icons-material/Edit";
-import ReadMoreIcon from "@mui/icons-material/ReadMore";
-import axios from "axios";
 import { getAccount, getAuthToken } from "../../auth";
 
+import AddIcon from "@mui/icons-material/Add";
+import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+
 export const AllStores = () => {
+    const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(false);
     const [stores, setStores] = useState<Store[]>([]);
 
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize] = useState(getAccount()?.userProfile?.pagePreference ?? 5);
     const [pageIndex, setPageIndex] = useState(0);
     const [totalPages, setTotalPages] = useState(999999);
-
-    useEffect(() => {
-        const account = getAccount();
-
-        if (account && account.userProfile) {
-            setPageSize(account.userProfile.pagePreference ?? 5);
-        }
-    }, []);
-
-    async function fetchStores(page: number): Promise<Store[]> {
-        const response = await axios.get<Store[]>(
-            `${BACKEND_API_URL}/stores/${page}/${pageSize}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${getAuthToken()}`,
-                },
-            }
-        );
-
-        return response.data;
-    }
-
-    useEffect(() => {
-        setLoading(true);
-
-        fetchStores(pageIndex).then((data) => {
-            setStores(data);
-            setLoading(false);
-        });
-    }, [pageIndex, pageSize]);
-
-    useEffect(() => {
-        const fetchPageCount = async () => {
-            const response = await axios.get<number>(
-                `${BACKEND_API_URL}/stores/count/${pageSize}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                }
-            );
-            const count = response.data;
-            setTotalPages(count);
-        };
-        fetchPageCount();
-    }, [pageSize]);
-
-    useEffect(() => {
-        setLoading(true);
-
-        fetchStores(pageIndex).then((data) => {
-            setStores(data);
-            setLoading(false);
-        });
-    }, [pageIndex, pageSize]);
-
-    function handlePageClick(pageNumber: number) {
-        setPageIndex(pageNumber - 1);
-    }
 
     const displayedPages = 9;
 
@@ -104,6 +48,85 @@ export const AllStores = () => {
         startPage = totalPages - displayedPages + 2;
         endPage = totalPages;
     }
+
+    function handlePageClick(pageNumber: number) {
+        setPageIndex(pageNumber - 1);
+    }
+
+    const fetchPageCount = async () => {
+        try {
+            await axios
+                .get<number>(`${BACKEND_API_URL}/stores/count/${pageSize}`, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
+                .then((response) => {
+                    const data = response.data;
+                    setTotalPages(data);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch page count!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch page count due to an unknown error!"
+            );
+        }
+    };
+
+    useEffect(() => {
+        fetchPageCount();
+    }, [pageSize]);
+
+    const fetchStores = async () => {
+        setLoading(true);
+        try {
+            await axios
+                .get<Store[]>(
+                    `${BACKEND_API_URL}/stores/${pageIndex}/${pageSize}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    setStores(data);
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch stores!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch stores due to an unknown error!"
+            );
+        }
+    };
+
+    useEffect(() => {
+        fetchStores();
+    }, [pageIndex, pageSize]);
 
     return (
         <Container>
@@ -122,6 +145,7 @@ export const AllStores = () => {
                 <Button
                     component={Link}
                     to={`/stores/add`}
+                    disabled={getAccount() === null}
                     variant="text"
                     size="large"
                     sx={{ mb: 2, textTransform: "none" }}

@@ -16,7 +16,24 @@ STORES_COUNT = 1_000_000
 STORE_SHIFTS_COUNT = 10_000_000
 
 USERS_COUNT = 10_000
+password = hashlib.sha256(b"a").hexdigest()
+ACCESS_LEVEL = 1
 PAGE_PREFERENCE = 5
+
+
+class AccessLevel(Enum):
+    Unconfirmed = 0
+    Regular = 1
+    Moderator = 2
+    Admin = 3
+
+
+class MaritalStatus(Enum):
+    Single = 0
+    Married = 1
+    Widowed = 2
+    Separated = 3
+    Divorced = 4
 
 
 class Gender(Enum):
@@ -31,17 +48,6 @@ class StoreCategory(Enum):
     Clothing = 2
     Electronics = 3
     Furniture = 4
-
-
-class MaritalStatus(Enum):
-    Single = 0
-    Married = 1
-    Widowed = 2
-    Separated = 3
-    Divorced = 4
-
-
-password = hashlib.sha256(b"123").hexdigest()
 
 
 def create_users_csv():
@@ -61,9 +67,9 @@ def create_users_csv():
                     unique_names.add(name)
                     break
 
-            # password = hashlib.sha256(b"123").hexdigest()
+            # password = hashlib.sha256(b"a").hexdigest()
 
-            writer.writerow([i, name, password, 0])
+            writer.writerow([i, name, password, ACCESS_LEVEL])
 
     print("End create_users_csv")
 
@@ -86,8 +92,18 @@ def create_user_profiles_csv():
             gender = random.choice(genders).value
             marital_status = random.choice(marital_statuses).value
 
+            userId = i
             writer.writerow(
-                [i, bio, location, birthday, gender, marital_status, PAGE_PREFERENCE]
+                [
+                    i,
+                    userId,
+                    bio,
+                    location,
+                    birthday,
+                    gender,
+                    marital_status,
+                    PAGE_PREFERENCE,
+                ]
             )
 
     print("End create_user_profiles_csv")

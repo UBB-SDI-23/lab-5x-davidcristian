@@ -8,21 +8,17 @@ import {
     Container,
     IconButton,
     TextField,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Autocomplete,
 } from "@mui/material";
-import { useCallback, useEffect, useState, useRef } from "react";
+
+import { useEffect, useState, useContext } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import axios, { AxiosError } from "axios";
 import { BACKEND_API_URL } from "../../constants";
-import { StoreShift } from "../../models/StoreShift";
-import { useContext } from "react";
+import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+import { StoreShift } from "../../models/StoreShift";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const ShiftUpdate = () => {
     const navigate = useNavigate();
@@ -41,36 +37,51 @@ export const ShiftUpdate = () => {
         storeEmployeeId: 0,
     });
 
-    useEffect(() => {
+    const fetchShift = async () => {
         setLoading(true);
-        const fetchShift = async () => {
-            const response = await axios.get<StoreShift>(
-                `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                }
+        try {
+            await axios
+                .get<StoreShift>(
+                    `${BACKEND_API_URL}/storeshifts/${storeId}/${employeeId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const shift = response.data;
+
+                    setEmployeeName(
+                        shift.storeEmployee?.firstName +
+                            " " +
+                            shift.storeEmployee?.lastName ?? ""
+                    );
+                    setStoreName(shift.store?.name ?? "");
+
+                    setShift(shift);
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch shift details!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch shift details due to an unknown error!"
             );
-            const data = response.data;
+        }
+    };
 
-            setEmployeeName(
-                data.storeEmployee?.firstName +
-                    " " +
-                    data.storeEmployee?.lastName ?? ""
-            );
-            setStoreName(data.store?.name ?? "");
-
-            setShift({
-                startDate: convertToInputFormat(data.startDate),
-                endDate: convertToInputFormat(data.endDate),
-
-                storeId: data.storeId,
-                storeEmployeeId: data.storeEmployeeId,
-            });
-
-            setLoading(false);
-        };
+    useEffect(() => {
         fetchShift();
     }, [storeId, employeeId]);
 
@@ -152,7 +163,7 @@ export const ShiftUpdate = () => {
                             </h1>
                         </Box>
 
-                        <form onSubmit={handleUpdate}>
+                        <form>
                             <TextField
                                 id="employeeName"
                                 label="Employee Name"
@@ -214,7 +225,6 @@ export const ShiftUpdate = () => {
                     </CardContent>
                     <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
                         <Button
-                            type="submit"
                             onClick={handleUpdate}
                             variant="contained"
                             sx={{ width: 100, mr: 2 }}

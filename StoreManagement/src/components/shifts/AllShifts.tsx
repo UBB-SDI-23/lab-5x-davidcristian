@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
     CircularProgress,
     Container,
@@ -14,74 +12,29 @@ import {
     Tooltip,
     Button,
     Box,
-    TextField,
 } from "@mui/material";
+
+import { useContext, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
-import { StoreShift } from "../../models/StoreShift";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import EditIcon from "@mui/icons-material/Edit";
-import ReadMoreIcon from "@mui/icons-material/ReadMore";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { SnackbarContext } from "../SnackbarContext";
 import { getAccount, getAuthToken } from "../../auth";
+import { StoreShift } from "../../models/StoreShift";
+
+import AddIcon from "@mui/icons-material/Add";
+import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 export const AllShifts = () => {
+    const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(false);
     const [shifts, setShifts] = useState<StoreShift[]>([]);
 
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize] = useState(getAccount()?.userProfile?.pagePreference ?? 5);
     const [pageIndex, setPageIndex] = useState(0);
     const [totalPages, setTotalPages] = useState(9999999);
-
-    useEffect(() => {
-        const account = getAccount();
-
-        if (account && account.userProfile) {
-            setPageSize(account.userProfile.pagePreference ?? 5);
-        }
-    }, []);
-
-    async function fetchShifts(page: number): Promise<StoreShift[]> {
-        const response = await axios.get<StoreShift[]>(
-            `${BACKEND_API_URL}/storeshifts/pages/${page}/${pageSize}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${getAuthToken()}`,
-                },
-            }
-        );
-
-        return response.data;
-    }
-
-    useEffect(() => {
-        const fetchPageCount = async () => {
-            const response = await axios.get<number>(
-                `${BACKEND_API_URL}/storeshifts/count/${pageSize}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                }
-            );
-            const count = response.data;
-            setTotalPages(count);
-        };
-        fetchPageCount();
-    }, [pageSize]);
-
-    useEffect(() => {
-        setLoading(true);
-
-        fetchShifts(pageIndex).then((data) => {
-            setShifts(data);
-            setLoading(false);
-        });
-    }, [pageIndex, pageSize]);
-
-    function handlePageClick(pageNumber: number) {
-        setPageIndex(pageNumber - 1);
-    }
 
     const displayedPages = 9;
 
@@ -95,6 +48,88 @@ export const AllShifts = () => {
         startPage = totalPages - displayedPages + 2;
         endPage = totalPages;
     }
+
+    function handlePageClick(pageNumber: number) {
+        setPageIndex(pageNumber - 1);
+    }
+
+    const fetchPageCount = async () => {
+        try {
+            await axios
+                .get<number>(
+                    `${BACKEND_API_URL}/storeshifts/count/${pageSize}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    setTotalPages(data);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch page count!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch page count due to an unknown error!"
+            );
+        }
+    };
+
+    useEffect(() => {
+        fetchPageCount();
+    }, [pageSize]);
+
+    const fetchShifts = async () => {
+        setLoading(true);
+        try {
+            await axios
+                .get<StoreShift[]>(
+                    `${BACKEND_API_URL}/storeshifts/pages/${pageIndex}/${pageSize}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    setShifts(data);
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch shifts!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch shifts due to an unknown error!"
+            );
+        }
+    };
+
+    useEffect(() => {
+        fetchShifts();
+    }, [pageIndex, pageSize]);
 
     return (
         <Container>

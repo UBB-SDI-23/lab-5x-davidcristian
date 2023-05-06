@@ -10,19 +10,18 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
-    Autocomplete,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
-import { Store, StoreCategory } from "../../models/Store";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios, { AxiosError } from "axios";
-import { debounce } from "lodash";
-import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+import { Store, StoreCategory } from "../../models/Store";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const StoreAdd = () => {
     const navigate = useNavigate();
@@ -100,7 +99,8 @@ export const StoreAdd = () => {
                             Add Store
                         </h1>
                     </Box>
-                    <form id="addStoreForm" onSubmit={addStore}>
+
+                    <form>
                         <TextField
                             id="name"
                             label="Name"
@@ -266,11 +266,7 @@ export const StoreAdd = () => {
                     </form>
                 </CardContent>
                 <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
-                    <Button
-                        variant="contained"
-                        type="submit"
-                        form="addStoreForm"
-                    >
+                    <Button onClick={addStore} variant="contained">
                         Add Store
                     </Button>
                 </CardActions>

@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
     CircularProgress,
     Container,
@@ -16,15 +14,18 @@ import {
     Box,
     TextField,
 } from "@mui/material";
+
+import { useState, useContext } from "react";
+import { Link } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
-import { Employee, Gender } from "../../models/Employee";
 import axios, { AxiosError } from "axios";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import EditIcon from "@mui/icons-material/Edit";
-import ReadMoreIcon from "@mui/icons-material/ReadMore";
-import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+import { Employee, Gender } from "../../models/Employee";
+
+import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 export const EmployeeFilter = () => {
     const openSnackbar = useContext(SnackbarContext);
@@ -33,30 +34,50 @@ export const EmployeeFilter = () => {
 
     const [salaryText, setSalaryText] = useState("3000");
 
-    async function fetchEmployees(minSalary: number) {
+    const fetchEmployees = async (minSalary: number) => {
         setLoading(true);
-        const response = await axios.get<Employee[]>(
-            `${BACKEND_API_URL}/storeemployees/Filter?minSalary=${minSalary}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${getAuthToken()}`,
-                },
-            }
-        );
+        try {
+            await axios
+                .get<Employee[]>(
+                    `${BACKEND_API_URL}/storeemployees/Filter?minSalary=${minSalary}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    setEmployees(data);
 
-        const data = response.data;
-        setEmployees(data);
-
-        setTimeout(() => {
-            setLoading(false);
-        }, 500);
-    }
+                    setTimeout(() => {
+                        setLoading(false);
+                    }, 500);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch employees!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch employees due to an unknown error!"
+            );
+        }
+    };
 
     function parseData() {
-        const intValue = parseInt(salaryText, 10);
+        const value = parseInt(salaryText, 10);
 
-        if (intValue > 0 && intValue <= 9999999) {
-            fetchEmployees(intValue);
+        if (value > 0 && value <= 9999999) {
+            fetchEmployees(value);
         } else {
             openSnackbar("error", "Please enter a valid number.");
         }

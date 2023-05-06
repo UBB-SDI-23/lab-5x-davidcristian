@@ -6,46 +6,71 @@ import {
     IconButton,
     Button,
     TextField,
+    CircularProgress,
 } from "@mui/material";
 import { Container } from "@mui/system";
+
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
+import axios, { AxiosError } from "axios";
+import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken, updatePref } from "../../auth";
 import { User } from "../../models/User";
+import { Gender } from "../../models/Employee";
+import { MaritalStatus } from "../../models/UserProfile";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Employee, Gender } from "../../models/Employee";
-import { MaritalStatus } from "../../models/UserProfile";
-import { SnackbarContext } from "../SnackbarContext";
-
-import { getAuthToken, updatePref } from "../../auth";
-import axios, { AxiosError } from "axios";
 
 export const UserDetails = () => {
     const openSnackbar = useContext(SnackbarContext);
+    const [loading, setLoading] = useState(false);
+
     const { userId } = useParams();
     const [user, setUser] = useState<User>();
-
     const [preferenceText, setPreferenceText] = useState("5");
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            const response = await axios.get<User>(
-                `${BACKEND_API_URL}/users/${userId}`,
-                {
+    const fetchUser = async () => {
+        setLoading(true);
+        try {
+            await axios
+                .get<User>(`${BACKEND_API_URL}/users/${userId}`, {
                     headers: {
                         Authorization: `Bearer ${getAuthToken()}`,
                     },
-                }
-            );
+                })
+                .then((response) => {
+                    const data = response.data;
 
-            const user = response.data;
-            setUser(user);
-            setPreferenceText(
-                user.userProfile?.pagePreference?.toString() ?? "5"
+                    setUser(data);
+                    setPreferenceText(
+                        data.userProfile?.pagePreference?.toString() ?? "5"
+                    );
+
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch user details!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch user details due to an unknown error!"
             );
-        };
+        }
+    };
+
+    useEffect(() => {
         fetchUser();
     }, [userId]);
 
@@ -63,12 +88,11 @@ export const UserDetails = () => {
                 )
                 .then(() => {
                     openSnackbar("success", "Preference updated successfully!");
-                    // todo: fix some inconsistencies with new page size
+
                     if (user && user.userProfile) {
                         user.userProfile.pagePreference = pref;
+                        updatePref(user.id, pref);
                     }
-
-                    updatePref(pref);
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
@@ -112,123 +136,129 @@ export const UserDetails = () => {
 
     return (
         <Container>
-            <Card sx={{ p: 2 }}>
-                <CardContent>
-                    <Box display="flex" alignItems="flex-start">
-                        <IconButton
-                            disabled
-                            component={Link}
-                            sx={{ mb: 2, mr: 3 }}
-                            to={``}
-                        >
-                            <ArrowBackIcon />
-                        </IconButton>
-                        <h1
-                            style={{
-                                flex: 1,
-                                textAlign: "center",
-                                marginLeft: -64,
-                                marginTop: -4,
-                            }}
-                        >
-                            User Details
-                        </h1>
-                    </Box>
-
-                    <Box sx={{ ml: 1 }}>
-                        <p>Name: {user?.name}</p>
-                        <p>Bio: {user?.userProfile?.bio}</p>
-                        <p>Location: {user?.userProfile?.location}</p>
-                        <p>
-                            Birthday: {formatDate(user?.userProfile?.birthday)}
-                        </p>
-                        <p>
-                            Gender:{" "}
-                            {user == null || user.userProfile == null
-                                ? ""
-                                : Gender[user.userProfile.gender]}
-                        </p>
-                        <p>
-                            Marital Status:{" "}
-                            {user == null || user.userProfile == null
-                                ? ""
-                                : MaritalStatus[user.userProfile.gender]}
-                        </p>
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginTop: 16,
-                                marginBottom: 16,
-                            }}
-                        >
-                            <p
+            {loading && <CircularProgress />}
+            {!loading && (
+                <Card sx={{ p: 2 }}>
+                    <CardContent>
+                        <Box display="flex" alignItems="flex-start">
+                            <IconButton
+                                disabled
+                                component={Link}
+                                sx={{ mb: 2, mr: 3 }}
+                                to={`/`}
+                            >
+                                <ArrowBackIcon />
+                            </IconButton>
+                            <h1
                                 style={{
-                                    marginRight: 8,
-                                    userSelect: "none",
+                                    flex: 1,
+                                    textAlign: "center",
+                                    marginLeft: -64,
+                                    marginTop: -4,
                                 }}
                             >
-                                {`Page Preference: `}
+                                User Details
+                            </h1>
+                        </Box>
+
+                        <Box sx={{ ml: 1 }}>
+                            <p>Name: {user?.name}</p>
+                            <p>Bio: {user?.userProfile?.bio}</p>
+                            <p>Location: {user?.userProfile?.location}</p>
+                            <p>
+                                Birthday:{" "}
+                                {formatDate(user?.userProfile?.birthday)}
                             </p>
-                            <TextField
-                                value={preferenceText}
-                                type="text"
-                                inputProps={{
-                                    min: 1,
-                                    style: { textAlign: "center" },
-                                }}
-                                onChange={handleInputChange}
-                                onKeyPress={handleInputKeyPress}
-                                variant="outlined"
-                                size="small"
+                            <p>
+                                Gender:{" "}
+                                {user == null || user.userProfile == null
+                                    ? ""
+                                    : Gender[user.userProfile.gender]}
+                            </p>
+                            <p>
+                                Marital Status:{" "}
+                                {user == null || user.userProfile == null
+                                    ? ""
+                                    : MaritalStatus[user.userProfile.gender]}
+                            </p>
+                            <div
                                 style={{
-                                    width: 100,
-                                    marginRight: 16,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    marginTop: 16,
+                                    marginBottom: 16,
                                 }}
-                            />
-                            <Button variant="contained" onClick={parseData}>
-                                Save
-                            </Button>
-                        </div>
+                            >
+                                <p
+                                    style={{
+                                        marginRight: 8,
+                                        userSelect: "none",
+                                    }}
+                                >
+                                    {`Page Preference: `}
+                                </p>
+                                <TextField
+                                    value={preferenceText}
+                                    type="text"
+                                    inputProps={{
+                                        min: 1,
+                                        style: { textAlign: "center" },
+                                    }}
+                                    onChange={handleInputChange}
+                                    onKeyPress={handleInputKeyPress}
+                                    variant="outlined"
+                                    size="small"
+                                    style={{
+                                        width: 100,
+                                        marginRight: 16,
+                                    }}
+                                />
+                                <Button variant="contained" onClick={parseData}>
+                                    Save
+                                </Button>
+                            </div>
 
-                        <p>User insertion stats:</p>
-                        <ul style={{ marginBottom: 0 }}>
-                            <li key={0}>Roles: {user?.roleCount}</li>
-                            <li key={1}>Employees: {user?.employeeCount}</li>
-                            <li key={2}>Stores: {user?.storeCount}</li>
-                            <li key={3}>Shifts: {user?.shiftCount}</li>
-                        </ul>
-                    </Box>
-                </CardContent>
-                <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
-                    <Button
-                        component={Link}
-                        to={`/users/${userId}/edit`}
-                        disabled={true}
-                        variant="text"
-                        size="large"
-                        sx={{
-                            color: "gray",
-                            textTransform: "none",
-                        }}
-                        startIcon={<EditIcon />}
-                    >
-                        Edit
-                    </Button>
+                            <p>User insertion stats:</p>
+                            <ul style={{ marginBottom: 0 }}>
+                                <li key={0}>Roles: {user?.roleCount}</li>
+                                <li key={1}>
+                                    Employees: {user?.employeeCount}
+                                </li>
+                                <li key={2}>Stores: {user?.storeCount}</li>
+                                <li key={3}>Shifts: {user?.shiftCount}</li>
+                            </ul>
+                        </Box>
+                    </CardContent>
+                    <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
+                        <Button
+                            component={Link}
+                            to={`/users/${userId}/edit`}
+                            disabled={true}
+                            variant="text"
+                            size="large"
+                            sx={{
+                                color: "gray",
+                                textTransform: "none",
+                            }}
+                            startIcon={<EditIcon />}
+                        >
+                            Edit
+                        </Button>
 
-                    <Button
-                        component={Link}
-                        to={`/users/${userId}/delete`}
-                        disabled={true}
-                        variant="text"
-                        size="large"
-                        sx={{ color: "red", textTransform: "none" }}
-                        startIcon={<DeleteForeverIcon />}
-                    >
-                        Delete
-                    </Button>
-                </CardActions>
-            </Card>
+                        <Button
+                            component={Link}
+                            to={`/users/${userId}/delete`}
+                            disabled={true}
+                            variant="text"
+                            size="large"
+                            sx={{ color: "red", textTransform: "none" }}
+                            startIcon={<DeleteForeverIcon />}
+                        >
+                            Delete
+                        </Button>
+                    </CardActions>
+                </Card>
+            )}
         </Container>
     );
 };

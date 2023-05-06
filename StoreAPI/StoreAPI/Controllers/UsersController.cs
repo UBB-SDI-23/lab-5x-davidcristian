@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Common;
+using StoreAPI.Attributes;
 using StoreAPI.Models;
 using StoreAPI.Validators;
 
@@ -31,6 +32,62 @@ namespace StoreAPI.Controllers
             _context = context;
             _jwtSettings = jwtSettings.Value;
             _validator = new UserValidator();
+        }
+
+        private static string HashPassword(string password)
+        {
+            byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, user.AccessLevel.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddHours(2),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        private static string GenerateRandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private string GenerateConfirmationToken(User user)
+        {
+            string code = string.Empty;
+            bool exists = true;
+
+            while (exists)
+            {
+                code = GenerateRandomString(8);
+                exists = _context.ConfirmationCodes.Any(cc => cc.Code == code);
+            }
+
+            var confirmationCode = new ConfirmationCode
+            {
+                UserId = user.Id,
+                Code = code,
+                Expiration = DateTime.UtcNow.AddMinutes(10),
+                Used = false
+            };
+
+            _context.ConfirmationCodes.Add(confirmationCode);
+            _context.SaveChanges();
+
+            return code;
         }
 
         // POST: api/Users/register
@@ -98,8 +155,11 @@ namespace StoreAPI.Controllers
             if (user.AccessLevel > 0)
                 return BadRequest("Account has already been confirmed.");
 
-            user.AccessLevel = 1;
+            user.AccessLevel = AccessLevel.Regular;
             confirmationCode.Used = true;
+
+            // TODO: temporarily deleting the confirmation code, fix the FK issue instead
+            _context.ConfirmationCodes.Remove(confirmationCode);
             await _context.SaveChangesAsync();
 
             return Ok("Account successfully confirmed.");
@@ -114,15 +174,9 @@ namespace StoreAPI.Controllers
                 return BadRequest();
 
             var hashedPassword = HashPassword(userDTO.Password);
-            List<string> possiblePasswords = new()
-            {
-                hashedPassword,
-                hashedPassword + "\r"
-            };
-
             var user = await _context.Users
                 .Include(u => u.UserProfile)
-                .SingleOrDefaultAsync(u => u.Name == userDTO.Name && u.Password != null && possiblePasswords.Contains(u.Password));
+                .SingleOrDefaultAsync(u => u.Name == userDTO.Name && u.Password != null && u.Password == hashedPassword);
             if (user == null)
                 return Unauthorized("Invalid username or password");
 
@@ -138,62 +192,6 @@ namespace StoreAPI.Controllers
                 user,
                 token
             };
-        }
-
-        private static string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-        }
-
-        private string GenerateJwtToken(User user)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddHours(2),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-
-        private static string GenerateRandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        private string GenerateConfirmationToken(User user)
-        {
-            string code = string.Empty;
-            bool exists = true;
-            
-            while (exists)
-            {
-                code = GenerateRandomString(8);
-                exists = _context.ConfirmationCodes.Any(cc => cc.Code == code);
-            }
-
-            var confirmationCode = new ConfirmationCode
-            {
-                UserId = user.Id,
-                Code = code,
-                Expiration = DateTime.UtcNow.AddMinutes(10),
-                Used = false
-            };
-
-            _context.ConfirmationCodes.Add(confirmationCode);
-            _context.SaveChanges();
-
-            return code;
         }
 
         // GET: api/Users/count/10
@@ -228,7 +226,7 @@ namespace StoreAPI.Controllers
         {
             if (_context.Users == null)
                 return NotFound();
-           
+
             var user = await _context.Users
                 .Include(x => x.UserProfile)
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -258,6 +256,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<UserProfileDTO>> GetUser(long id)
         {
             if (_context.Users == null)
@@ -359,12 +358,19 @@ namespace StoreAPI.Controllers
             {
                 Name = userDTO.Name,
                 Password = userDTO.Password,
+                AccessLevel = AccessLevel.Unconfirmed,
+
+                UserProfile = new UserProfile
+                {
+                    
+                },
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUser),
+            return CreatedAtAction(
+                nameof(GetUser),
                 new { id = user.Id },
                 UserToDTO(user));
         }
@@ -379,6 +385,11 @@ namespace StoreAPI.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null)
                 return NotFound();
+
+            // delete UserProfile
+            var userProfile = await _context.UserProfiles.FindAsync(id);
+            if (userProfile != null)
+                _context.UserProfiles.Remove(userProfile);
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();

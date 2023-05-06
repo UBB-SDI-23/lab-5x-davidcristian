@@ -10,20 +10,20 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
-    Autocomplete,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { useState, useContext, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios, { AxiosError } from "axios";
-import { UserRegisterDTO } from "../../models/UserRegisterDTO";
-import { debounce } from "lodash";
-import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
+import { logOut } from "../../auth";
+import { UserRegisterDTO } from "../../models/UserRegisterDTO";
 import { Gender } from "../../models/Employee";
 import { MaritalStatus } from "../../models/UserProfile";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const UserRegister = () => {
     const navigate = useNavigate();
@@ -41,14 +41,17 @@ export const UserRegister = () => {
         maritalStatus: 0,
     });
 
-    const addRole = async (event: { preventDefault: () => void }) => {
+    useEffect(() => {
+        logOut();
+    }, []);
+
+    const userRegister = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
             await axios
                 .post(`${BACKEND_API_URL}/users/register`, user)
                 .then((response) => {
                     console.log(response);
-
                     openSnackbar(
                         "success",
                         "Registered successfully!" +
@@ -88,7 +91,7 @@ export const UserRegister = () => {
                             disabled
                             component={Link}
                             sx={{ mb: 2, mr: 3 }}
-                            to={``}
+                            to={`/`}
                         >
                             <ArrowBackIcon />
                         </IconButton>
@@ -103,7 +106,8 @@ export const UserRegister = () => {
                             Register
                         </h1>
                     </Box>
-                    <form id="registerForm" onSubmit={addRole}>
+
+                    <form>
                         <TextField
                             id="name"
                             label="Name"
@@ -238,11 +242,7 @@ export const UserRegister = () => {
                     </form>
                 </CardContent>
                 <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
-                    <Button
-                        variant="contained"
-                        type="submit"
-                        form="registerForm"
-                    >
+                    <Button onClick={userRegister} variant="contained">
                         Register
                     </Button>
                 </CardActions>

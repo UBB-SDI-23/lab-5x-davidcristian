@@ -13,22 +13,24 @@ import {
     Autocomplete,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+
+import { useEffect, useState, useCallback, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
-import { Employee, Gender } from "../../models/Employee";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios, { AxiosError } from "axios";
-import { EmployeeRole } from "../../models/EmployeeRole";
-import { debounce } from "lodash";
-import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+
+import { debounce } from "lodash";
+import { Employee, Gender } from "../../models/Employee";
+import { EmployeeRole } from "../../models/EmployeeRole";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const EmployeeAdd = () => {
     const navigate = useNavigate();
     const openSnackbar = useContext(SnackbarContext);
-    const [employeeRoles, setEmployeeRoles] = useState<EmployeeRole[]>([]);
+    const [roles, setRoles] = useState<EmployeeRole[]>([]);
 
     const [employee, setEmployee] = useState<Employee>({
         firstName: "",
@@ -75,44 +77,80 @@ export const EmployeeAdd = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchEmployeeRoles = async () => {
-            try {
-                const response = await axios.get<EmployeeRole[]>(
+    const fetchInitialData = async () => {
+        try {
+            await axios
+                .get<EmployeeRole[]>(
                     `${BACKEND_API_URL}/storeemployeeroles/0/10`,
                     {
                         headers: {
                             Authorization: `Bearer ${getAuthToken()}`,
                         },
                     }
-                );
-                setEmployeeRoles(response.data);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        fetchEmployeeRoles();
+                )
+                .then((response) => {
+                    const data = response.data;
+                    setRoles(data);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch data!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch data due to an unknown error!"
+            );
+        }
+    };
+
+    useEffect(() => {
+        fetchInitialData();
     }, []);
 
     const fetchSuggestions = async (query: string) => {
         try {
-            const response = await axios.get<EmployeeRole[]>(
-                `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                }
-            );
+            await axios
+                .get<EmployeeRole[]>(
+                    `${BACKEND_API_URL}/storeemployeeroles/search?query=${query}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    const removedDupes = data.filter(
+                        (v, i, a) =>
+                            a.findIndex((v2) => v2.name === v.name) === i
+                    );
 
-            const data = response.data;
-            const removedDupes = data.filter(
-                (v, i, a) => a.findIndex((v2) => v2.name === v.name) === i
-            );
-
-            setEmployeeRoles(removedDupes);
+                    setRoles(removedDupes);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch employee suggestions!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
         } catch (error) {
-            console.error("Error fetching suggestions:", error);
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch employee suggestions due to an unknown error!"
+            );
         }
     };
 
@@ -127,7 +165,11 @@ export const EmployeeAdd = () => {
         };
     }, [debouncedFetchSuggestions]);
 
-    const handleInputChange = (event: any, value: any, reason: any) => {
+    const handleInputChange = (
+        event: React.SyntheticEvent,
+        value: string,
+        reason: string
+    ) => {
         if (value.length < 3) return;
         console.log("input", value, reason);
 
@@ -159,7 +201,8 @@ export const EmployeeAdd = () => {
                             Add Employee
                         </h1>
                     </Box>
-                    <form id="addEmployeeForm" onSubmit={addEmployee}>
+
+                    <form>
                         <TextField
                             id="firstName"
                             label="First Name"
@@ -267,7 +310,7 @@ export const EmployeeAdd = () => {
                         <Autocomplete
                             id="storeEmployeeRoleId"
                             sx={{ mb: 2 }}
-                            options={employeeRoles}
+                            options={roles}
                             getOptionLabel={(option) => option.name}
                             renderOption={(props, option) => {
                                 return (
@@ -299,8 +342,8 @@ export const EmployeeAdd = () => {
                 </CardContent>
                 <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
                     <Button
+                        onClick={addEmployee}
                         variant="contained"
-                        type="submit"
                         form="addEmployeeForm"
                     >
                         Add Employee

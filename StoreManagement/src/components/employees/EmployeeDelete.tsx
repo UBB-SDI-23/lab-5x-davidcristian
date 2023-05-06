@@ -7,13 +7,15 @@ import {
     Button,
     Box,
 } from "@mui/material";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import axios, { AxiosError } from "axios";
-import { BACKEND_API_URL } from "../../constants";
+
 import { useContext } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { BACKEND_API_URL } from "../../constants";
+import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const EmployeeDelete = () => {
     const navigate = useNavigate();

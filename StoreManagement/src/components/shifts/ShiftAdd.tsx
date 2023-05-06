@@ -7,19 +7,26 @@ import {
     Button,
     Box,
 } from "@mui/material";
+
+import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { SnackbarContext } from "../SnackbarContext";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const ShiftAdd = () => {
     const navigate = useNavigate();
+    const openSnackbar = useContext(SnackbarContext);
 
     const handleGoButton = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
+        openSnackbar("info", "Navigating to shifts...");
         navigate("/shifts");
     };
 
     const handleBackButton = (event: { preventDefault: () => void }) => {
         event.preventDefault();
+        openSnackbar("info", "Navigating to shifts...");
         navigate("/shifts");
     };
 

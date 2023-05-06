@@ -8,24 +8,17 @@ import {
     Container,
     IconButton,
     TextField,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Autocomplete,
 } from "@mui/material";
-import { useCallback, useEffect, useState, useRef } from "react";
+
+import { useEffect, useState, useContext } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
-import { BACKEND_API_URL, getEnumValues } from "../../constants";
-import { EmployeeRole } from "../../models/EmployeeRole";
-import { debounce } from "lodash";
-import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+import { EmployeeRole } from "../../models/EmployeeRole";
 
-// todo: fix axios wait handling (emp shift add example)
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const RoleUpdate = () => {
     const navigate = useNavigate();
@@ -41,27 +34,43 @@ export const RoleUpdate = () => {
         roleLevel: -1,
     });
 
-    useEffect(() => {
-        const fetchRole = async () => {
-            const response = await axios.get<EmployeeRole>(
-                `${BACKEND_API_URL}/storeemployeeroles/${roleId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                }
+    const fetchRole = async () => {
+        setLoading(true);
+        try {
+            await axios
+                .get<EmployeeRole>(
+                    `${BACKEND_API_URL}/storeemployeeroles/${roleId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const role = response.data;
+                    setRole(role);
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch role details!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch role details due to an unknown error!"
             );
-            const role = response.data;
+        }
+    };
 
-            setRole({
-                id: role.id,
-                name: role.name,
-                description: role.description,
-                roleLevel: role.roleLevel,
-            });
-
-            setLoading(false); // todo check if setloading is true in every file before
-        };
+    useEffect(() => {
         fetchRole();
     }, [roleId]);
 
@@ -132,7 +141,7 @@ export const RoleUpdate = () => {
                             </h1>
                         </Box>
 
-                        <form onSubmit={handleUpdate}>
+                        <form>
                             <TextField
                                 id="name"
                                 label="Name"
@@ -180,7 +189,6 @@ export const RoleUpdate = () => {
                     </CardContent>
                     <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
                         <Button
-                            type="submit"
                             onClick={handleUpdate}
                             variant="contained"
                             sx={{ width: 100, mr: 2 }}

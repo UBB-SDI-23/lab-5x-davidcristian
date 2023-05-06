@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using StoreAPI.Models;
 using StoreAPI.Validators;
+using System.Security.Claims;
+using StoreAPI.Attributes;
 
 namespace StoreAPI.Controllers
 {
@@ -26,6 +28,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreEmployeeRoles/count/10
         [HttpGet("count/{pageSize}")]
+        [AllowAnonymous]
         public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
         {
             int total = await _context.StoreEmployeeRoles.CountAsync();
@@ -38,6 +41,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreEmployeeRoles/0/10
         [HttpGet("{page}/{pageSize}")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StoreEmployeeRole>>> GetStoreEmployeeRoles(int page = 0, int pageSize = 10)
         {
             if (_context.StoreEmployeeRoles == null)
@@ -65,6 +69,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/StoreEmployeeRoles/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<StoreEmployeeRole>> GetStoreEmployeeRole(long id)
         {
             if (_context.StoreEmployeeRoles == null)
@@ -140,6 +145,13 @@ namespace StoreAPI.Controllers
             if (_context.StoreEmployeeRoles == null)
                 return Problem("Entity set 'StoreContext.StoreEmployeeRoles' is null.");
 
+            // TODO: use this to set the user ID everywhere
+            // Extract user id from the JWT token
+            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
+            {
+                return Unauthorized("Invalid token.");
+            }
+
             // Validate the employee role
             var validationResult = _validator.Validate(employeeRoleDTO);
             if (validationResult != string.Empty)
@@ -152,6 +164,8 @@ namespace StoreAPI.Controllers
 
                 RoleLevel = employeeRoleDTO.RoleLevel,
                 StoreEmployees = null!,
+
+                UserId = userId
             };
 
             _context.StoreEmployeeRoles.Add(employeeRole);

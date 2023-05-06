@@ -13,9 +13,9 @@ import { ShowStoreSalaryReport } from "./components/reports/ShowStoreSalaryRepor
 import { ShowStoreHeadcountReport } from "./components/reports/ShowStoreHeadcountReport";
 
 import { AllEmployees } from "./components/employees/AllEmployees";
+import { EmployeeAdd } from "./components/employees/EmployeeAdd";
 import { EmployeeDetails } from "./components/employees/EmployeeDetails";
 import { EmployeeDelete } from "./components/employees/EmployeeDelete";
-import { EmployeeAdd } from "./components/employees/EmployeeAdd";
 import { EmployeeUpdate } from "./components/employees/EmployeeUpdate";
 import { EmployeeFilter } from "./components/employees/EmployeeFilter";
 import { EmployeeShiftAdd } from "./components/employees/EmployeeShiftAdd";
@@ -41,7 +41,7 @@ import { ShiftUpdate } from "./components/shifts/ShiftUpdate";
 
 import { UserDetails } from "./components/users/UserDetails";
 import { UserRegister } from "./components/users/UserRegister";
-import { UserRegisterConfirm } from "./components/users/UserRegisterConfirm";
+import { UserConfirm } from "./components/users/UserConfirm";
 import { UserLogin } from "./components/users/UserLogin";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -106,7 +106,7 @@ function App() {
                         />
                         <Route
                             path="/users/register/confirm/:code"
-                            element={<UserRegisterConfirm />}
+                            element={<UserConfirm />}
                         />
                         <Route path="/users/login" element={<UserLogin />} />
 

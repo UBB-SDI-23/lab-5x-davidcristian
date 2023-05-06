@@ -18,14 +18,15 @@ namespace StoreAPI.Models
         {
             base.OnModelCreating(modelBuilder);
 
-            // UserProfile has the primary key equal to the id of the User
-            modelBuilder.Entity<UserProfile>()
-                .HasKey(u => u.UserId);
-
             // Set PagePreference default value to 5
             modelBuilder.Entity<UserProfile>()
-                .Property(u => u.PagePreference)
+                .Property(p => p.PagePreference)
                 .HasDefaultValue(5);
+
+            // Set AccessLevel default value to Unconfirmed
+            modelBuilder.Entity<User>()
+                .Property(u => u.AccessLevel)
+                .HasDefaultValue(AccessLevel.Unconfirmed);
 
             // Define unique constraints
             modelBuilder.Entity<User>()
@@ -33,7 +34,7 @@ namespace StoreAPI.Models
                 .IsUnique();
 
             modelBuilder.Entity<ConfirmationCode>()
-                .HasIndex(u => u.Code)
+                .HasIndex(c => c.Code)
                 .IsUnique();
 
             // Define one-to-one relationships
@@ -46,56 +47,56 @@ namespace StoreAPI.Models
 
             // Define one-to-many relationships
             modelBuilder.Entity<StoreEmployee>()
-                .HasOne(s => s.StoreEmployeeRole)
-                .WithMany(g => g.StoreEmployees)
-                .HasForeignKey(s => s.StoreEmployeeRoleId)
+                .HasOne(e => e.StoreEmployeeRole)
+                .WithMany(r => r.StoreEmployees)
+                .HasForeignKey(e => e.StoreEmployeeRoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             // Define many-to-many relationships
             modelBuilder.Entity<StoreShift>()
-                .HasKey(t => new { t.StoreId, t.StoreEmployeeId });
+                .HasKey(ss => new { ss.StoreId, ss.StoreEmployeeId });
 
             modelBuilder.Entity<StoreShift>()
-                .HasOne(pt => pt.Store)
-                .WithMany(p => p.StoreShifts)
-                .HasForeignKey(pt => pt.StoreId)
+                .HasOne(ss => ss.Store)
+                .WithMany(s => s.StoreShifts)
+                .HasForeignKey(ss => ss.StoreId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             modelBuilder.Entity<StoreShift>()
-                .HasOne(pt => pt.StoreEmployee)
-                .WithMany(t => t.StoreShifts)
-                .HasForeignKey(pt => pt.StoreEmployeeId)
+                .HasOne(ss => ss.StoreEmployee)
+                .WithMany(et => e.StoreShifts)
+                .HasForeignKey(ss => ss.StoreEmployeeId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             // Assign users to entities
             modelBuilder.Entity<ConfirmationCode>()
-                .HasOne(u => u.User)
+                .HasOne(c => c.User)
                 .WithMany()
-                .HasForeignKey(u => u.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull); // TODO: Fix FK constraint
 
             modelBuilder.Entity<StoreEmployeeRole>()
-                .HasOne(u => u.User)
+                .HasOne(r => r.User)
                 .WithMany()
-                .HasForeignKey(u => u.UserId)
+                .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             modelBuilder.Entity<StoreEmployee>()
-                .HasOne(u => u.User)
+                .HasOne(e => e.User)
                 .WithMany()
-                .HasForeignKey(u => u.UserId)
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             modelBuilder.Entity<Store>()
-                .HasOne(u => u.User)
+                .HasOne(s => s.User)
                 .WithMany()
-                .HasForeignKey(u => u.UserId)
+                .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             modelBuilder.Entity<StoreShift>()
-                .HasOne(u => u.User)
+                .HasOne(ss => ss.User)
                 .WithMany()
-                .HasForeignKey(u => u.UserId)
+                .HasForeignKey(ss => ss.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
         }
 

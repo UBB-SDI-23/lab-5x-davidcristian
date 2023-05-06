@@ -8,37 +8,57 @@ import {
     TableBody,
     CircularProgress,
     Container,
-    IconButton,
-    Tooltip,
 } from "@mui/material";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { BACKEND_API_URL } from "../../constants";
-import { StoreHeadcountReport } from "../../models/StoreHeadcountReport";
-import { StoreCategory } from "../../models/Store";
 import axios from "axios";
+import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
 
+import { StoreHeadcountReport } from "../../models/StoreHeadcountReport";
+import { StoreCategory } from "../../models/Store";
+
 export const ShowStoreHeadcountReport = () => {
+    const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(true);
     const [stores, setStores] = useState([]);
 
-    useEffect(() => {
+    const fetchStores = async () => {
         setLoading(true);
 
-        const fetchStores = async () => {
-            const response = await axios.get<[]>(
-                `${BACKEND_API_URL}/stores/report/headcount`,
-                {
+        try {
+            await axios
+                .get<[]>(`${BACKEND_API_URL}/stores/report/headcount`, {
                     headers: {
                         Authorization: `Bearer ${getAuthToken()}`,
                     },
-                }
+                })
+                .then((response) => {
+                    const stores = response.data;
+                    setStores(stores);
+                    setLoading(false);
+                })
+                .catch((reason) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch stores!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch stores due to an unknown error!"
             );
+        }
+    };
 
-            setStores(response.data);
-            setLoading(false);
-        };
+    useEffect(() => {
         fetchStores();
     }, []);
 

@@ -12,18 +12,17 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
-    Autocomplete,
 } from "@mui/material";
-import { useCallback, useEffect, useState, useRef } from "react";
+
+import { useEffect, useState, useContext } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import axios, { AxiosError } from "axios";
-import { Store, StoreCategory } from "../../models/Store";
 import { BACKEND_API_URL, getEnumValues } from "../../constants";
-import { debounce } from "lodash";
-import { useContext } from "react";
+import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+import { Store, StoreCategory } from "../../models/Store";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const StoreUpdate = () => {
     const navigate = useNavigate();
@@ -49,38 +48,40 @@ export const StoreUpdate = () => {
         closeDate: "",
     });
 
-    useEffect(() => {
-        const fetchStore = async () => {
-            const response = await axios.get<Store>(
-                `${BACKEND_API_URL}/stores/${storeId}`,
-                {
+    const fetchStore = async () => {
+        setLoading(true);
+        try {
+            await axios
+                .get<Store>(`${BACKEND_API_URL}/stores/${storeId}`, {
                     headers: {
                         Authorization: `Bearer ${getAuthToken()}`,
                     },
-                }
+                })
+                .then((response) => {
+                    const store = response.data;
+                    setStore(store);
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch store details!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch store details due to an unknown error!"
             );
+        }
+    };
 
-            const store = response.data;
-            setStore({
-                id: store.id,
-                name: store.name,
-                description: store.description,
-
-                category: store.category,
-                address: store.address,
-
-                city: store.city,
-                state: store.state,
-
-                zipCode: store.zipCode,
-                country: store.country,
-
-                openDate: store.openDate,
-                closeDate: store.closeDate,
-            });
-
-            setLoading(false);
-        };
+    useEffect(() => {
         fetchStore();
     }, [storeId]);
 
@@ -158,7 +159,7 @@ export const StoreUpdate = () => {
                             </h1>
                         </Box>
 
-                        <form onSubmit={handleUpdate}>
+                        <form>
                             <TextField
                                 id="name"
                                 label="Name"
@@ -338,7 +339,6 @@ export const StoreUpdate = () => {
                     </CardContent>
                     <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
                         <Button
-                            type="submit"
                             onClick={handleUpdate}
                             variant="contained"
                             sx={{ width: 100, mr: 2 }}

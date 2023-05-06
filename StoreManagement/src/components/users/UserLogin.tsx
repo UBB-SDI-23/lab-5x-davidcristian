@@ -6,24 +6,18 @@ import {
     CardContent,
     IconButton,
     TextField,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Autocomplete,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { BACKEND_API_URL, getEnumValues } from "../../constants";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import axios, { AxiosError } from "axios";
-import { User } from "../../models/User";
-import { debounce } from "lodash";
-import { useContext } from "react";
-import { SnackbarContext } from "../SnackbarContext";
 
-import { setAccount, setAuthToken } from "../../auth";
+import { useState, useContext, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { BACKEND_API_URL } from "../../constants";
+import axios, { AxiosError } from "axios";
+import { SnackbarContext } from "../SnackbarContext";
+import { logOut, setAccount, setAuthToken } from "../../auth";
+import { User } from "../../models/User";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const UserLogin = () => {
     const navigate = useNavigate();
@@ -34,7 +28,11 @@ export const UserLogin = () => {
         password: "",
     });
 
-    const addRole = async (event: { preventDefault: () => void }) => {
+    useEffect(() => {
+        logOut();
+    }, []);
+
+    const userLogin = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
         try {
             await axios
@@ -72,7 +70,7 @@ export const UserLogin = () => {
                             disabled
                             component={Link}
                             sx={{ mb: 2, mr: 3 }}
-                            to={``}
+                            to={`/`}
                         >
                             <ArrowBackIcon />
                         </IconButton>
@@ -87,7 +85,8 @@ export const UserLogin = () => {
                             Log In
                         </h1>
                     </Box>
-                    <form id="loginForm" onSubmit={addRole}>
+
+                    <form>
                         <TextField
                             id="name"
                             label="Name"
@@ -118,7 +117,7 @@ export const UserLogin = () => {
                     </form>
                 </CardContent>
                 <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
-                    <Button variant="contained" type="submit" form="loginForm">
+                    <Button onClick={userLogin} variant="contained">
                         Log In
                     </Button>
                 </CardActions>

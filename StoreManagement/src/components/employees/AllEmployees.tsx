@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
     CircularProgress,
     Container,
@@ -14,24 +12,124 @@ import {
     Tooltip,
     Button,
     Box,
-    TextField,
 } from "@mui/material";
+
+import { useContext, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
-import { Employee, Gender } from "../../models/Employee";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import EditIcon from "@mui/icons-material/Edit";
-import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import axios, { AxiosError } from "axios";
+import { SnackbarContext } from "../SnackbarContext";
 import { getAccount, getAuthToken } from "../../auth";
-import axios from "axios";
+import { Employee, Gender } from "../../models/Employee";
+
+import AddIcon from "@mui/icons-material/Add";
+import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 export const AllEmployees = () => {
+    const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(false);
     const [employees, setEmployees] = useState<Employee[]>([]);
 
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize] = useState(getAccount()?.userProfile?.pagePreference ?? 5);
     const [pageIndex, setPageIndex] = useState(0);
     const [totalPages, setTotalPages] = useState(999999);
+
+    function handlePageClick(pageNumber: number) {
+        setPageIndex(pageNumber - 1);
+    }
+
+    const displayedPages = 9;
+
+    let startPage = pageIndex - Math.floor((displayedPages - 3) / 2) + 1;
+    let endPage = startPage + displayedPages - 3;
+
+    if (startPage <= 2) {
+        startPage = 1;
+        endPage = displayedPages - 1;
+    } else if (endPage >= totalPages - 1) {
+        startPage = totalPages - displayedPages + 2;
+        endPage = totalPages;
+    }
+
+    const fetchPageCount = async () => {
+        try {
+            await axios
+                .get<number>(
+                    `${BACKEND_API_URL}/storeemployees/count/${pageSize}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    setTotalPages(data);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch page count!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch page count due to an unknown error!"
+            );
+        }
+    };
+
+    useEffect(() => {
+        fetchPageCount();
+    }, [pageSize]);
+
+    const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+            await axios
+                .get<Employee[]>(
+                    `${BACKEND_API_URL}/storeemployees/${pageIndex}/${pageSize}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    setEmployees(data);
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch employees!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch employees due to an unknown error!"
+            );
+        }
+    };
+
+    useEffect(() => {
+        fetchEmployees();
+    }, [pageIndex, pageSize]);
 
     const [sorting, setSorting] = useState({
         key: "column name",
@@ -47,17 +145,7 @@ export const AllEmployees = () => {
     }
 
     useEffect(() => {
-        const account = getAccount();
-
-        if (account && account.userProfile) {
-            setPageSize(account.userProfile.pagePreference ?? 5);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (employees.length === 0) {
-            return;
-        }
+        if (employees.length === 0) return;
 
         const currentEmployees = [...employees];
         const sortedCurrentUsers = currentEmployees.sort((a, b) => {
@@ -81,62 +169,6 @@ export const AllEmployees = () => {
         );
     }, [sorting]);
 
-    useEffect(() => {
-        // TODO: improve this func in all
-        const fetchPageCount = async () => {
-            const response = await axios.get<number>(
-                `${BACKEND_API_URL}/storeemployees/count/${pageSize}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${getAuthToken()}`,
-                    },
-                }
-            );
-            const count = response.data;
-            setTotalPages(count);
-        };
-        fetchPageCount();
-    }, [pageSize]);
-
-    async function fetchEmployees(page: number): Promise<Employee[]> {
-        const response = await axios.get<Employee[]>(
-            `${BACKEND_API_URL}/storeemployees/${page}/${pageSize}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${getAuthToken()}`,
-                },
-            }
-        );
-
-        return response.data;
-    }
-
-    function handlePageClick(pageNumber: number) {
-        setPageIndex(pageNumber - 1);
-    }
-
-    useEffect(() => {
-        setLoading(true);
-
-        fetchEmployees(pageIndex).then((data) => {
-            setEmployees(data);
-            setLoading(false);
-        });
-    }, [pageIndex, pageSize]);
-
-    const displayedPages = 9;
-
-    let startPage = pageIndex - Math.floor((displayedPages - 3) / 2) + 1;
-    let endPage = startPage + displayedPages - 3;
-
-    if (startPage <= 2) {
-        startPage = 1;
-        endPage = displayedPages - 1;
-    } else if (endPage >= totalPages - 1) {
-        startPage = totalPages - displayedPages + 2;
-        endPage = totalPages;
-    }
-
     return (
         <Container>
             <h1
@@ -154,6 +186,7 @@ export const AllEmployees = () => {
                 <Button
                     component={Link}
                     to={`/employees/add`}
+                    disabled={getAccount() === null}
                     variant="text"
                     size="large"
                     sx={{ mb: 2, textTransform: "none" }}

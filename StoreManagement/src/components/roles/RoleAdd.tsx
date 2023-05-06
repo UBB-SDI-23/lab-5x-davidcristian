@@ -6,23 +6,18 @@ import {
     CardContent,
     IconButton,
     TextField,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Autocomplete,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { BACKEND_API_URL, getEnumValues } from "../../constants";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
+import { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
-import { EmployeeRole } from "../../models/EmployeeRole";
-import { debounce } from "lodash";
-import { useContext } from "react";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAuthToken } from "../../auth";
+import { EmployeeRole } from "../../models/EmployeeRole";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const RoleAdd = () => {
     const navigate = useNavigate();
@@ -90,7 +85,8 @@ export const RoleAdd = () => {
                             Add Role
                         </h1>
                     </Box>
-                    <form id="addRoleForm" onSubmit={addRole}>
+
+                    <form>
                         <TextField
                             id="name"
                             label="Name"
@@ -134,11 +130,7 @@ export const RoleAdd = () => {
                     </form>
                 </CardContent>
                 <CardActions sx={{ mb: 1, ml: 1, mt: 1 }}>
-                    <Button
-                        variant="contained"
-                        type="submit"
-                        form="addRoleForm"
-                    >
+                    <Button onClick={addRole} variant="contained">
                         Add Role
                     </Button>
                 </CardActions>

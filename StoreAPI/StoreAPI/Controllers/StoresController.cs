@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using StoreAPI.Models;
+using System.Security.Claims;
 
 namespace StoreAPI.Controllers
 {
@@ -23,6 +24,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Stores/count/10
         [HttpGet("count/{pageSize}")]
+        [AllowAnonymous]
         public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
         {
             int total = await _context.Stores.CountAsync();
@@ -35,6 +37,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Stores/0/10
         [HttpGet("{page}/{pageSize}")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Store>>> GetStores(int page = 0, int pageSize = 10)
         {
             if (_context.Stores == null)
@@ -62,6 +65,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Stores/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Store>> GetStore(long id)
         {
             if (_context.Stores == null)
@@ -142,6 +146,12 @@ namespace StoreAPI.Controllers
             if (_context.Stores == null)
                 return Problem("Entity set 'StoreContext.Stores' is null.");
 
+            // Extract user id from the JWT token
+            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
+            {
+                return Unauthorized("Invalid token.");
+            }
+
             var store = new Store
             {
                 Name = storeDTO.Name,
@@ -157,7 +167,9 @@ namespace StoreAPI.Controllers
                 Country = storeDTO.Country,
 
                 OpenDate = storeDTO.OpenDate,
-                CloseDate = storeDTO.CloseDate
+                CloseDate = storeDTO.CloseDate,
+
+                UserId = userId
             };
 
             _context.Stores.Add(store);
@@ -230,6 +242,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Stores/report/salaries
         [HttpGet("report/salaries")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StoreSalaryReportDTO>>> GetStoresByAverageEmployeeSalary()
         {
             var stores = await _context.Stores
@@ -270,6 +283,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Stores/report/headcount
         [HttpGet("report/headcount")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StoreHeadcountReportDTO>>> GetStoresByEmployeeCount()
         {
             var stores = await _context.Stores
@@ -310,34 +324,34 @@ namespace StoreAPI.Controllers
         [HttpGet("test/report/salaries")]
         public async Task<List<StoreSalaryReportDTO>> TestGetStoresByAverageEmployeeSalary()
         {
-            var a = await (from stores in _context.Stores
-                           join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
-                           from storeShifts in storeShiftsGroup.DefaultIfEmpty()
-                           let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
-                           join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
-                           from employees in employeesGroup.DefaultIfEmpty()
-                           group employees by stores into g
-                           select new StoreSalaryReportDTO
-                           {
-                               Id = g.Key.Id,
-                               Name = g.Key.Name,
-                               Description = g.Key.Description,
+            var a = await (
+                from stores in _context.Stores
+                join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
+                from storeShifts in storeShiftsGroup.DefaultIfEmpty()
+                let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
+                join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
+                from employees in employeesGroup.DefaultIfEmpty()
+                group employees by stores into g
+                select new StoreSalaryReportDTO
+                {
+                    Id = g.Key.Id,
+                    Name = g.Key.Name,
+                    Description = g.Key.Description,
 
-                               Category = g.Key.Category,
-                               Address = g.Key.Address,
+                    Category = g.Key.Category,
+                    Address = g.Key.Address,
 
-                               City = g.Key.City,
-                               State = g.Key.State,
+                    City = g.Key.City,
+                    State = g.Key.State,
 
-                               ZipCode = g.Key.ZipCode,
-                               Country = g.Key.Country,
+                    ZipCode = g.Key.ZipCode,
+                    Country = g.Key.Country,
 
-                               OpenDate = g.Key.OpenDate,
-                               CloseDate = g.Key.CloseDate,
+                    OpenDate = g.Key.OpenDate,
+                    CloseDate = g.Key.CloseDate,
 
-                               AverageSalary = g.Average(e => e == null ? 0 : e.Salary)
-                           }
-                ).OrderByDescending(stores => stores.AverageSalary).ToListAsync();
+                    AverageSalary = g.Average(e => e == null ? 0 : e.Salary)
+                }).OrderByDescending(stores => stores.AverageSalary).ToListAsync();
 
             return a;
         }
@@ -346,34 +360,34 @@ namespace StoreAPI.Controllers
         [HttpGet("test/report/headcount")]
         public async Task<List<StoreHeadcountReportDTO>> TestGetStoresByEmployeeCount()
         {
-            var a = await (from stores in _context.Stores
-                           join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
-                           from storeShifts in storeShiftsGroup.DefaultIfEmpty()
-                           let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
-                           join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
-                           from employees in employeesGroup.DefaultIfEmpty()
-                           group employees by stores into g
-                           select new StoreHeadcountReportDTO
-                           {
-                               Id = g.Key.Id,
-                               Name = g.Key.Name,
-                               Description = g.Key.Description,
+            var a = await (
+                from stores in _context.Stores
+                join storeShifts in _context.StoreShifts on stores.Id equals storeShifts.StoreId into storeShiftsGroup
+                from storeShifts in storeShiftsGroup.DefaultIfEmpty()
+                let storeEmployeeId = storeShifts != null ? storeShifts.StoreEmployeeId : (long?)null
+                join employees in _context.StoreEmployees on storeEmployeeId equals employees.Id into employeesGroup
+                from employees in employeesGroup.DefaultIfEmpty()
+                group employees by stores into g
+                select new StoreHeadcountReportDTO
+                {
+                    Id = g.Key.Id,
+                    Name = g.Key.Name,
+                    Description = g.Key.Description,
 
-                               Category = g.Key.Category,
-                               Address = g.Key.Address,
+                    Category = g.Key.Category,
+                    Address = g.Key.Address,
 
-                               City = g.Key.City,
-                               State = g.Key.State,
+                    City = g.Key.City,
+                    State = g.Key.State,
 
-                               ZipCode = g.Key.ZipCode,
-                               Country = g.Key.Country,
+                    ZipCode = g.Key.ZipCode,
+                    Country = g.Key.Country,
 
-                               OpenDate = g.Key.OpenDate,
-                               CloseDate = g.Key.CloseDate,
+                    OpenDate = g.Key.OpenDate,
+                    CloseDate = g.Key.CloseDate,
 
-                               Headcount = g.Count(e => e != null)
-                           }
-                ).OrderByDescending(stores => stores.Headcount).ToListAsync();
+                    Headcount = g.Count(e => e != null)
+                }).OrderByDescending(stores => stores.Headcount).ToListAsync();
 
             return a;
         }

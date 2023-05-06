@@ -6,25 +6,29 @@ import {
     Typography,
     Button,
 } from "@mui/material";
+
 import { Link, useLocation } from "react-router-dom";
+import { getAccount } from "../auth";
+
 import HomeIcon from "@mui/icons-material/Home";
-import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import GroupIcon from "@mui/icons-material/Group";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ShieldIcon from "@mui/icons-material/Shield";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
+
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import GroupIcon from "@mui/icons-material/Group";
+
 import KeyIcon from "@mui/icons-material/Key";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-import { getAccount } from "../auth";
 
 export const AppMenu = () => {
     const location = useLocation();
     const path = location.pathname;
 
     return (
-        <Box sx={{ flexGrow: 1, position: "sticky", top: "0" }}>
+        <Box sx={{ flexGrow: 1, position: "sticky", top: "0", zIndex: "9" }}>
             <AppBar position="static" sx={{ marginBottom: "20px" }}>
                 <Toolbar>
                     <IconButton
@@ -53,9 +57,8 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<PersonSearchIcon />}
-                        disabled={getAccount() === null}
                     >
-                        Filter Employees
+                        Filter
                     </Button>
 
                     <Button
@@ -67,7 +70,6 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<EmojiEmotionsIcon />}
-                        disabled={getAccount() === null}
                     >
                         Employees
                     </Button>
@@ -81,7 +83,6 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<ShieldIcon />}
-                        disabled={getAccount() === null}
                     >
                         Roles
                     </Button>
@@ -95,7 +96,6 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<LocalOfferIcon />}
-                        disabled={getAccount() === null}
                     >
                         Stores
                     </Button>
@@ -109,7 +109,6 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<AccessTimeFilledIcon />}
-                        disabled={getAccount() === null}
                     >
                         Shifts
                     </Button>
@@ -125,9 +124,8 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<AttachMoneyIcon />}
-                        disabled={getAccount() === null}
                     >
-                        Salary Report
+                        Salaries
                     </Button>
 
                     <Button
@@ -141,9 +139,8 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{ mr: 5 }}
                         startIcon={<GroupIcon />}
-                        disabled={getAccount() === null}
                     >
-                        Headcount Report
+                        Headcount
                     </Button>
 
                     <Box sx={{ flexGrow: 1 }} />
