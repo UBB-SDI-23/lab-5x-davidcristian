@@ -64,7 +64,7 @@ namespace StoreAPI.Models
 
             modelBuilder.Entity<StoreShift>()
                 .HasOne(ss => ss.StoreEmployee)
-                .WithMany(et => e.StoreShifts)
+                .WithMany(e => e.StoreShifts)
                 .HasForeignKey(ss => ss.StoreEmployeeId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 

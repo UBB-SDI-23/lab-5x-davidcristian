@@ -79,17 +79,34 @@ export const EmployeeFilter = () => {
         if (value > 0 && value <= 9999999) {
             fetchEmployees(value);
         } else {
-            openSnackbar("error", "Please enter a valid number.");
+            openSnackbar(
+                "error",
+                "Please enter a valid number (0 < n <= 9999999)"
+            );
         }
     }
 
-    function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = event.target.value.replace(/[^\d]/g, "");
-        setSalaryText(value);
-    }
-
     function handleInputKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
-        if (event.key === "Enter") {
+        const key = event.key;
+
+        // Only allow digits (0-9) and Enter
+        if (
+            ![
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "Enter",
+            ].includes(key)
+        ) {
+            event.preventDefault();
+        } else if (key === "Enter") {
             parseData();
         }
     }
@@ -128,7 +145,7 @@ export const EmployeeFilter = () => {
                     value={salaryText}
                     type="text"
                     inputProps={{ min: 1, style: { textAlign: "center" } }}
-                    onChange={handleInputChange}
+                    onChange={(event) => setSalaryText(event.target.value)}
                     onKeyPress={handleInputKeyPress}
                     variant="outlined"
                     size="small"

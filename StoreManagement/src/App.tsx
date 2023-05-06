@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+import { Box } from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert, { AlertProps, AlertColor } from "@mui/material/Alert";
 import { SnackbarContext } from "./components/SnackbarContext";
@@ -195,6 +196,8 @@ function App() {
                         />
                         <Route path="/shifts/add" element={<ShiftAdd />} />
                     </Routes>
+
+                    <Box sx={{ mb: 4 }} />
                 </Router>
             </SnackbarContext.Provider>
         </React.Fragment>
