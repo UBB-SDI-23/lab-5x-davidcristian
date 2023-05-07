@@ -2,17 +2,20 @@ USE [store]
 GO
 
 -- Drop constraints
-ALTER TABLE StoreShifts DROP CONSTRAINT FK_StoreShifts_Stores_StoreId;
-ALTER TABLE StoreShifts DROP CONSTRAINT FK_StoreShifts_StoreEmployees_StoreEmployeeId;
-ALTER TABLE StoreEmployees DROP CONSTRAINT FK_StoreEmployees_StoreEmployeeRoles_StoreEmployeeRoleId;
+ALTER TABLE StoreShifts DROP CONSTRAINT IF EXISTS FK_StoreShifts_Stores_StoreId;
+ALTER TABLE StoreShifts DROP CONSTRAINT IF EXISTS FK_StoreShifts_StoreEmployees_StoreEmployeeId;
+ALTER TABLE StoreEmployees DROP CONSTRAINT IF EXISTS FK_StoreEmployees_StoreEmployeeRoles_StoreEmployeeRoleId;
 
-ALTER TABLE ConfirmationCodes DROP CONSTRAINT FK_ConfirmationCodes_Users_UserId;
-ALTER TABLE UserProfiles DROP CONSTRAINT FK_UserProfiles_Users_UserId;
+ALTER TABLE ConfirmationCodes DROP CONSTRAINT IF EXISTS FK_ConfirmationCodes_Users_UserId;
+ALTER TABLE UserProfiles DROP CONSTRAINT IF EXISTS FK_UserProfiles_Users_UserId;
 
-ALTER TABLE StoreShifts DROP CONSTRAINT FK_StoreShifts_Users_UserId;
-ALTER TABLE Stores DROP CONSTRAINT FK_Stores_Users_UserId;
-ALTER TABLE StoreEmployees DROP CONSTRAINT FK_StoreEmployees_Users_UserId;
-ALTER TABLE StoreEmployeeRoles DROP CONSTRAINT FK_StoreEmployeeRoles_Users_UserId;
+ALTER TABLE StoreShifts DROP CONSTRAINT IF EXISTS FK_StoreShifts_Users_UserId;
+ALTER TABLE Stores DROP CONSTRAINT IF EXISTS FK_Stores_Users_UserId;
+ALTER TABLE StoreEmployees DROP CONSTRAINT IF EXISTS FK_StoreEmployees_Users_UserId;
+ALTER TABLE StoreEmployeeRoles DROP CONSTRAINT IF EXISTS FK_StoreEmployeeRoles_Users_UserId;
+
+DROP INDEX IF EXISTS IX_Users_Name ON Users;
+DROP INDEX IF EXISTS IX_ConfirmationCodes_Code ON ConfirmationCodes;
 GO
 
 TRUNCATE TABLE ConfirmationCodes
@@ -65,18 +68,26 @@ ADD CONSTRAINT FK_StoreShifts_Stores_StoreId FOREIGN KEY (StoreId) REFERENCES St
 	CONSTRAINT FK_StoreShifts_StoreEmployees_StoreEmployeeId FOREIGN KEY (StoreEmployeeId) REFERENCES StoreEmployees (Id);
 
 ALTER TABLE UserProfiles
-ADD CONSTRAINT FK_UserProfiles_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id);
+ADD CONSTRAINT FK_UserProfiles_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE;
+
 ALTER TABLE ConfirmationCodes
-ADD CONSTRAINT FK_ConfirmationCodes_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id);
+ADD CONSTRAINT FK_ConfirmationCodes_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE;
 
 ALTER TABLE StoreEmployeeRoles
-ADD CONSTRAINT FK_StoreEmployeeRoles_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (ID);
+ADD CONSTRAINT FK_StoreEmployeeRoles_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE SET NULL;
+
 ALTER TABLE StoreEmployees
-ADD CONSTRAINT FK_StoreEmployees_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (ID);
+ADD CONSTRAINT FK_StoreEmployees_Users_UserId FOREIGN KEY (UserId)
+REFERENCES Users (Id) ON DELETE SET NULL;
+
 ALTER TABLE Stores
-ADD CONSTRAINT FK_Stores_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (ID);
+ADD CONSTRAINT FK_Stores_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE SET NULL;
+
 ALTER TABLE StoreShifts
-ADD CONSTRAINT FK_StoreShifts_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (ID);
+ADD CONSTRAINT FK_StoreShifts_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE SET NULL;
+
+CREATE UNIQUE INDEX IX_Users_Name ON Users (Name);
+CREATE UNIQUE INDEX IX_ConfirmationCodes_Code ON ConfirmationCodes (Code);
 GO
 
 SELECT COUNT(*) AS 'Users' FROM Users
@@ -86,9 +97,6 @@ SELECT COUNT(*) AS 'Roles' FROM StoreEmployeeRoles
 SELECT COUNT(*) AS 'Employees' FROM StoreEmployees
 SELECT COUNT(*) AS 'Stores' FROM Stores
 SELECT COUNT(*) AS 'Shifts' FROM StoreShifts
-
-SELECT * FROM ConfirmationCodes
-SELECT TOP 10 * FROM Users
 GO
 
 INSERT INTO Users([Name], [Password], [AccessLevel])
@@ -108,6 +116,17 @@ VALUES
 	(10004, 'bio d', 'location d', '2000-01-01 00:00:00.0000000', 0, 3, 5)
 GO
 
+INSERT INTO ConfirmationCodes([UserId], [Code], [Expiration], [Used])
+VALUES
+	(10004, 'a', '2100-01-01 00:00:00.0000000', 0)
+GO
+
+SELECT * FROM ConfirmationCodes
 SELECT * FROM Users WHERE [Name] IN ('a', 'b', 'c', 'd')
 SELECT * FROM UserProfiles WHERE [UserId] IN (10001, 10002, 10003, 10004)
 GO
+
+SELECT TOP 10 * FROM Users
+GO
+
+--DELETE FROM Users WHERE [Name] = 'd'

@@ -27,11 +27,7 @@ export const setAuthToken = (newToken: string | null) => {
 
 export const getAuthToken = () => {
     if (token && tokenExpirationDate && tokenExpirationDate < Date.now()) {
-        setAuthToken(null);
-        setAccount(null);
-
-        // TODO: Show snackbar
-        // TODO: Redirect to login page
+        logOut();
     }
 
     return token;

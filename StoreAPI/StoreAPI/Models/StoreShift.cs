@@ -13,6 +13,6 @@
         public virtual StoreEmployee StoreEmployee { get; set; } = null!;
 
         public virtual long? UserId { get; set; }
-        public virtual User User { get; set; } = null!;
+        public virtual User? User { get; set; } = null!;
     }
 }

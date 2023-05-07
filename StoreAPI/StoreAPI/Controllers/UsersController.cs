@@ -5,15 +5,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Common;
-using StoreAPI.Attributes;
 using StoreAPI.Models;
 using StoreAPI.Validators;
 
@@ -65,7 +61,7 @@ namespace StoreAPI.Controllers
             return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        private string GenerateConfirmationToken(User user)
+        private async Task<ConfirmationCode> GenerateConfirmationCode(User user)
         {
             string code = string.Empty;
             bool exists = true;
@@ -73,7 +69,7 @@ namespace StoreAPI.Controllers
             while (exists)
             {
                 code = GenerateRandomString(8);
-                exists = _context.ConfirmationCodes.Any(cc => cc.Code == code);
+                exists = await _context.ConfirmationCodes.AnyAsync(cc => cc.Code == code);
             }
 
             var confirmationCode = new ConfirmationCode
@@ -85,9 +81,9 @@ namespace StoreAPI.Controllers
             };
 
             _context.ConfirmationCodes.Add(confirmationCode);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return code;
+            return confirmationCode;
         }
 
         // POST: api/Users/register
@@ -124,12 +120,13 @@ namespace StoreAPI.Controllers
             var userDTO = UserToDTO(user);
             userDTO.Password = null;
 
-            var token = GenerateConfirmationToken(user);
+            var confirmationCode = await GenerateConfirmationCode(user);
 
             return new
             {
                 user = userDTO,
-                token
+                token = confirmationCode.Code,
+                expiration = confirmationCode.Expiration
             };
         }
 
@@ -158,8 +155,6 @@ namespace StoreAPI.Controllers
             user.AccessLevel = AccessLevel.Regular;
             confirmationCode.Used = true;
 
-            // TODO: temporarily deleting the confirmation code, fix the FK issue instead
-            _context.ConfirmationCodes.Remove(confirmationCode);
             await _context.SaveChangesAsync();
 
             return Ok("Account successfully confirmed.");
@@ -385,11 +380,6 @@ namespace StoreAPI.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null)
                 return NotFound();
-
-            // delete UserProfile
-            var userProfile = await _context.UserProfiles.FindAsync(id);
-            if (userProfile != null)
-                _context.UserProfiles.Remove(userProfile);
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();

@@ -38,19 +38,17 @@ namespace StoreAPI.Models
                 .IsUnique();
 
             // Define one-to-one relationships
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.UserProfile)
-                .WithOne(p => p.User)
+            modelBuilder.Entity<UserProfile>()
+                .HasOne(p => p.User)
+                .WithOne(u => u.UserProfile)
                 .HasForeignKey<UserProfile>(p => p.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-                //.OnDelete(DeleteBehavior.ClientCascade);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Define one-to-many relationships
             modelBuilder.Entity<StoreEmployee>()
                 .HasOne(e => e.StoreEmployeeRole)
                 .WithMany(r => r.StoreEmployees)
-                .HasForeignKey(e => e.StoreEmployeeRoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .HasForeignKey(e => e.StoreEmployeeRoleId);
 
             // Define many-to-many relationships
             modelBuilder.Entity<StoreShift>()
@@ -59,45 +57,43 @@ namespace StoreAPI.Models
             modelBuilder.Entity<StoreShift>()
                 .HasOne(ss => ss.Store)
                 .WithMany(s => s.StoreShifts)
-                .HasForeignKey(ss => ss.StoreId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .HasForeignKey(ss => ss.StoreId);
 
             modelBuilder.Entity<StoreShift>()
                 .HasOne(ss => ss.StoreEmployee)
                 .WithMany(e => e.StoreShifts)
-                .HasForeignKey(ss => ss.StoreEmployeeId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .HasForeignKey(ss => ss.StoreEmployeeId);
 
             // Assign users to entities
             modelBuilder.Entity<ConfirmationCode>()
                 .HasOne(c => c.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull); // TODO: Fix FK constraint
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<StoreEmployeeRole>()
                 .HasOne(r => r.User)
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<StoreEmployee>()
                 .HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Store>()
                 .HasOne(s => s.User)
                 .WithMany()
                 .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<StoreShift>()
                 .HasOne(ss => ss.User)
                 .WithMany()
                 .HasForeignKey(ss => ss.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.SetNull);
         }
 
         public virtual DbSet<ConfirmationCode> ConfirmationCodes { get; set; } = null!;

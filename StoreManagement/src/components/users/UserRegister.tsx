@@ -15,7 +15,7 @@ import { Container } from "@mui/system";
 
 import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BACKEND_API_URL, getEnumValues } from "../../constants";
+import { BACKEND_API_URL, formatDate, getEnumValues } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { logOut } from "../../auth";
@@ -52,16 +52,30 @@ export const UserRegister = () => {
                 .post(`${BACKEND_API_URL}/users/register`, user)
                 .then((response) => {
                     console.log(response);
+                    const token = response.data.token;
+
+                    const expirationDateTime = new Date(
+                        response.data.expiration
+                    );
+                    const expirationInMinutes = Math.floor(
+                        (expirationDateTime.getTime() -
+                            new Date().getTime() +
+                            1000) /
+                            (1000 * 60)
+                    );
+
                     openSnackbar(
                         "success",
                         "Registered successfully!" +
                             "\n" +
                             "Please confirm your account using this code: " +
-                            response.data.token +
+                            token +
                             "\n" +
-                            "This code will expire in 10 minutes."
+                            `This code will expire in ${expirationInMinutes} minutes at ${formatDate(
+                                expirationDateTime
+                            )}.`
                     );
-                    navigate(`/users/register/confirm/${response.data.token}`);
+                    navigate(`/users/register/confirm/${token}`);
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);

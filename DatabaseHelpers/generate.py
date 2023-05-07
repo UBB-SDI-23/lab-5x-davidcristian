@@ -2,9 +2,10 @@ import os
 import csv
 import random
 import hashlib
-from enum import Enum
 from faker import Faker
 from multiprocessing import Process
+
+from utils import *
 
 fake = Faker()
 MIN_ROLE_LEVEL = 1
@@ -16,38 +17,9 @@ STORES_COUNT = 1_000_000
 STORE_SHIFTS_COUNT = 10_000_000
 
 USERS_COUNT = 10_000
-password = hashlib.sha256(b"a").hexdigest()
-ACCESS_LEVEL = 1
+PASSWORD = hashlib.sha256(b"a").hexdigest()
+ACCESS_LEVEL = AccessLevel.Regular.value
 PAGE_PREFERENCE = 5
-
-
-class AccessLevel(Enum):
-    Unconfirmed = 0
-    Regular = 1
-    Moderator = 2
-    Admin = 3
-
-
-class MaritalStatus(Enum):
-    Single = 0
-    Married = 1
-    Widowed = 2
-    Separated = 3
-    Divorced = 4
-
-
-class Gender(Enum):
-    Female = 0
-    Male = 1
-    Other = 2
-
-
-class StoreCategory(Enum):
-    General = 0
-    Food = 1
-    Clothing = 2
-    Electronics = 3
-    Furniture = 4
 
 
 def create_users_csv():
@@ -67,9 +39,7 @@ def create_users_csv():
                     unique_names.add(name)
                     break
 
-            # password = hashlib.sha256(b"a").hexdigest()
-
-            writer.writerow([i, name, password, ACCESS_LEVEL])
+            writer.writerow([i, name, PASSWORD, ACCESS_LEVEL])
 
     print("End create_users_csv")
 
@@ -92,11 +62,11 @@ def create_user_profiles_csv():
             gender = random.choice(genders).value
             marital_status = random.choice(marital_statuses).value
 
-            userId = i
+            user_id = i
             writer.writerow(
                 [
                     i,
-                    userId,
+                    user_id,
                     bio,
                     location,
                     birthday,

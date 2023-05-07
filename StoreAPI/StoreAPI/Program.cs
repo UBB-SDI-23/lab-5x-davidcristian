@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StoreAPI.Models;
+using StoreAPI.Services;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -17,6 +18,7 @@ namespace StoreAPI
 
             // Add services to the container.
             //builder.Services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            builder.Services.AddHostedService<ExpiredConfirmationCodeCleanupService>();
 
             builder.Services.AddControllers(
                 options =>

@@ -155,6 +155,7 @@ export const EmployeeUpdate = () => {
                 )
                 .then((response) => {
                     const data = response.data;
+                    data.unshift(employeeRole.current);
                     const removedDupes = data.filter(
                         (v, i, a) =>
                             a.findIndex((v2) => v2.name === v.name) === i
