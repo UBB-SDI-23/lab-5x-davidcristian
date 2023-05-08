@@ -22,7 +22,9 @@ import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import GroupIcon from "@mui/icons-material/Group";
 
+import LocalPoliceIcon from "@mui/icons-material/LocalPolice";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { AccessLevel } from "../models/User";
 
 export const AppMenu = () => {
     const navigate = useNavigate();
@@ -167,6 +169,24 @@ export const AppMenu = () => {
                     </Button>
 
                     <Box sx={{ flexGrow: 1 }} />
+
+                    <IconButton
+                        component={Link}
+                        to={`/users/adminpanel`}
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="school"
+                        sx={{
+                            mr: 0,
+                            display:
+                                getAccount()?.accessLevel === AccessLevel.Admin
+                                    ? "inline"
+                                    : "none",
+                        }}
+                    >
+                        <LocalPoliceIcon />
+                    </IconButton>
 
                     <Button
                         variant="text"

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using StoreAPI.Models;
 using StoreAPI.Services;
@@ -82,8 +83,9 @@ namespace StoreAPI
             // Seed database
             using (var scope = app.Services.CreateScope())
             {
-                var services = scope.ServiceProvider;
-                SeedData.Initialize(services);
+                var context = scope.ServiceProvider.GetService<StoreContext>();
+                //context.Database.Migrate();
+                SeedData.InitializeAsync(scope.ServiceProvider).Wait();
             }
 
             app.UseSwagger();

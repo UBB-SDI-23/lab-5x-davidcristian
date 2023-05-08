@@ -31,7 +31,7 @@ namespace StoreAPI.Controllers
             _validator = new UserValidator();
         }
 
-        private static string HashPassword(string password)
+        public static string HashPassword(string password)
         {
             byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
@@ -227,6 +227,13 @@ namespace StoreAPI.Controllers
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
                 return NotFound();
+
+            var extracted = ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 < AccessLevel.Admin && user.Id != extracted.Item1)
+                return Unauthorized("You can only update your own preferences.");
 
             user.UserProfile.PagePreference = pref;
             await _context.SaveChangesAsync();
