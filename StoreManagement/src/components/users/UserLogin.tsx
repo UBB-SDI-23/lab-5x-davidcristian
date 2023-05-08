@@ -71,7 +71,6 @@ export const UserLogin = () => {
                 <CardContent>
                     <Box display="flex" alignItems="flex-start" sx={{ mb: 4 }}>
                         <IconButton
-                            disabled
                             component={Link}
                             sx={{ mb: 2, mr: 3 }}
                             to={`/`}

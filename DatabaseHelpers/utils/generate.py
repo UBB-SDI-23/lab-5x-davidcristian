@@ -8,6 +8,8 @@ from multiprocessing import Process
 from utils import *
 
 fake = Faker()
+BASE_PATH = os.path.join(os.getcwd(), "resources")
+
 MIN_ROLE_LEVEL = 1
 MAX_ROLE_LEVEL = 100
 
@@ -22,13 +24,14 @@ ACCESS_LEVEL = AccessLevel.Regular.value
 PAGE_PREFERENCE = 5
 
 
-def create_users_csv():
+def create_users_csv() -> None:
     print("Begin create_users_csv")
+    file = os.path.join(BASE_PATH, "users.csv")
 
-    if os.path.exists("users.csv"):
-        os.remove("users.csv")
+    if os.path.exists(file):
+        os.remove(file)
 
-    with open("users.csv", "w", newline="") as f:
+    with open(file, "w", newline="") as f:
         writer = csv.writer(f)
 
         unique_names = set()
@@ -44,15 +47,17 @@ def create_users_csv():
     print("End create_users_csv")
 
 
-def create_user_profiles_csv():
+def create_user_profiles_csv() -> None:
     print("Begin create_user_profiles_csv")
+    file = os.path.join(BASE_PATH, "user_profiles.csv")
+
     genders = list(Gender)
     marital_statuses = list(MaritalStatus)
 
-    if os.path.exists("user_profiles.csv"):
-        os.remove("user_profiles.csv")
+    if os.path.exists(file):
+        os.remove(file)
 
-    with open("user_profiles.csv", "w", newline="") as f:
+    with open(file, "w", newline="") as f:
         writer = csv.writer(f)
 
         for i in range(1, USERS_COUNT + 1):
@@ -79,13 +84,14 @@ def create_user_profiles_csv():
     print("End create_user_profiles_csv")
 
 
-def create_employee_roles_csv():
+def create_employee_roles_csv() -> None:
     print("Begin create_employee_roles_csv")
+    file = os.path.join(BASE_PATH, "employee_roles.csv")
 
-    if os.path.exists("employee_roles.csv"):
-        os.remove("employee_roles.csv")
+    if os.path.exists(file):
+        os.remove(file)
 
-    with open("employee_roles.csv", "w", newline="") as f:
+    with open(file, "w", newline="") as f:
         writer = csv.writer(f)
 
         for i in range(1, EMPLOYEE_ROLES_COUNT + 1):
@@ -99,14 +105,16 @@ def create_employee_roles_csv():
     print("End create_employee_roles_csv")
 
 
-def create_employees_csv():
+def create_employees_csv() -> None:
     print("Begin create_employees_csv")
+    file = os.path.join(BASE_PATH, "employees.csv")
+
     genders = list(Gender)
 
-    if os.path.exists("employees.csv"):
-        os.remove("employees.csv")
+    if os.path.exists(file):
+        os.remove(file)
 
-    with open("employees.csv", "w", newline="") as f:
+    with open(file, "w", newline="") as f:
         writer = csv.writer(f)
 
         for i in range(1, EMPLOYEES_COUNT + 1):
@@ -140,14 +148,16 @@ def create_employees_csv():
     print("End create_employees_csv")
 
 
-def create_stores_csv():
+def create_stores_csv() -> None:
     print("Begin create_stores_csv")
+    file = os.path.join(BASE_PATH, "stores.csv")
+
     categories = list(StoreCategory)
 
-    if os.path.exists("stores.csv"):
-        os.remove("stores.csv")
+    if os.path.exists(file):
+        os.remove(file)
 
-    with open("stores.csv", "w", newline="") as f:
+    with open(file, "w", newline="") as f:
         writer = csv.writer(f)
 
         for i in range(1, STORES_COUNT + 1):
@@ -187,11 +197,12 @@ def create_stores_csv():
     print("End create_stores_csv")
 
 
-def create_store_shifts_csv():
+def create_store_shifts_csv() -> None:
     print("Begin create_store_shifts_csv")
+    file = os.path.join(BASE_PATH, "store_shifts.csv")
 
-    if os.path.exists("store_shifts.csv"):
-        os.remove("store_shifts.csv")
+    if os.path.exists(file):
+        os.remove(file)
 
     unique_shifts = set()
     for _ in range(STORE_SHIFTS_COUNT):
@@ -204,7 +215,7 @@ def create_store_shifts_csv():
 
     print(f"Generated {len(unique_shifts)} unique shifts. Writing...")
 
-    with open("store_shifts.csv", "w", newline="") as f:
+    with open(file, "w", newline="") as f:
         writer = csv.writer(f)
 
         current = 0
@@ -222,7 +233,10 @@ def create_store_shifts_csv():
     print("End create_store_shifts_csv")
 
 
-if __name__ == "__main__":
+def start_generation() -> None:
+    if not os.path.exists(BASE_PATH):
+        os.makedirs(BASE_PATH, exist_ok=True)
+
     processes = []
     for func in [
         create_users_csv,

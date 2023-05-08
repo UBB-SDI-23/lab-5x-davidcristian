@@ -24,7 +24,7 @@ import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 
 export const EmployeeDetails = () => {
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const { employeeId } = useParams();
     const [employee, setEmployee] = useState<Employee>();

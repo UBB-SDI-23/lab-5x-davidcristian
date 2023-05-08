@@ -35,7 +35,7 @@ export const EmployeeUpdate = () => {
     const { employeeId } = useParams<{ employeeId: string }>();
     const [roles, setRoles] = useState<EmployeeRole[]>([]);
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [employee, setEmployee] = useState<Employee>({
         firstName: "",
         lastName: "",

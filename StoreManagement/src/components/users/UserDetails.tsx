@@ -24,13 +24,14 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
+// TODO: also show page preference setting for Admins
 export const UserDetails = () => {
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const { userId } = useParams();
     const [user, setUser] = useState<User>();
-    const [preferenceText, setPreferenceText] = useState("5");
+    const [preferenceText, setPreferenceText] = useState("");
 
     const fetchUser = async () => {
         setLoading(true);
@@ -46,7 +47,7 @@ export const UserDetails = () => {
 
                     setUser(data);
                     setPreferenceText(
-                        data.userProfile?.pagePreference?.toString() ?? "5"
+                        data.userProfile?.pagePreference?.toString() ?? ""
                     );
 
                     setLoading(false);
@@ -78,7 +79,7 @@ export const UserDetails = () => {
         try {
             await axios
                 .patch(
-                    `${BACKEND_API_URL}/users/${userId}/${pref}`,
+                    `${BACKEND_API_URL}/users/${userId}/pagepreference/${pref}`,
                     {},
                     {
                         headers: {
@@ -156,10 +157,13 @@ export const UserDetails = () => {
                     <CardContent>
                         <Box display="flex" alignItems="flex-start">
                             <IconButton
-                                disabled
+                                disabled={
+                                    getAccount()?.accessLevel !==
+                                    AccessLevel.Admin
+                                }
                                 component={Link}
                                 sx={{ mb: 2, mr: 3 }}
-                                to={`/`}
+                                to={`/users`}
                             >
                                 <ArrowBackIcon />
                             </IconButton>
@@ -201,7 +205,9 @@ export const UserDetails = () => {
                                     ? ""
                                     : MaritalStatus[user.userProfile.gender]}
                             </p>
-                            {user?.id === getAccount()?.id && (
+                            {(user?.id === getAccount()?.id ||
+                                getAccount()?.accessLevel ===
+                                    AccessLevel.Admin) && (
                                 <div
                                     style={{
                                         display: "flex",
@@ -262,7 +268,9 @@ export const UserDetails = () => {
                         <Button
                             component={Link}
                             to={`/users/${userId}/edit`}
-                            disabled={true}
+                            disabled={
+                                getAccount()?.accessLevel !== AccessLevel.Admin
+                            }
                             variant="text"
                             size="large"
                             sx={{
@@ -277,7 +285,9 @@ export const UserDetails = () => {
                         <Button
                             component={Link}
                             to={`/users/${userId}/delete`}
-                            disabled={true}
+                            disabled={
+                                getAccount()?.accessLevel !== AccessLevel.Admin
+                            }
                             variant="text"
                             size="large"
                             sx={{ color: "red", textTransform: "none" }}

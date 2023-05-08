@@ -23,7 +23,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 export const ShiftDetails = () => {
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const { storeId, employeeId } = useParams();
     const [shift, setShift] = useState<StoreShift>();

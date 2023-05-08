@@ -29,7 +29,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 export const AllEmployees = () => {
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [employees, setEmployees] = useState<Employee[]>([]);
 
     const [pageSize] = useState(getAccount()?.userProfile?.pagePreference ?? 5);

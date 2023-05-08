@@ -30,7 +30,7 @@ export const StoreUpdate = () => {
 
     const { storeId } = useParams<{ storeId: string }>();
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [store, setStore] = useState<Store>({
         name: "",
         description: "",

@@ -191,6 +191,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Users/count/10
         [HttpGet("count/{pageSize}")]
+        [Role(AccessLevel.Admin)]
         public async Task<int> GetTotalNumberOfPages(int pageSize = 10)
         {
             int total = await _context.Users.CountAsync();
@@ -203,6 +204,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Users/0/10
         [HttpGet("{page}/{pageSize}")]
+        [Role(AccessLevel.Admin)]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers(int page = 0, int pageSize = 10)
         {
             if (_context.Users == null)
@@ -215,8 +217,8 @@ namespace StoreAPI.Controllers
                 .ToListAsync();
         }
 
-        // PATCH: api/Users/0/10
-        [HttpPatch("{id}/{pref}")]
+        // PATCH: api/Users/0/PagePreference/5
+        [HttpPatch("{id}/PagePreference/{pref}")]
         public async Task<ActionResult<UserDTO>> PatchPreference(long id, long pref)
         {
             if (_context.Users == null)
@@ -244,8 +246,31 @@ namespace StoreAPI.Controllers
             return userDTO;
         }
 
+        // PATCH: api/Users/0/PagePreference/5
+        [HttpPatch("{id}/AccessLevel/{accessLevel}")]
+        [Role(AccessLevel.Admin)]
+        public async Task<ActionResult<UserDTO>> PatchAccessLevel(long id, AccessLevel accessLevel)
+        {
+            if (_context.Users == null)
+                return NotFound();
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (user == null)
+                return NotFound();
+
+            user.AccessLevel = accessLevel;
+            await _context.SaveChangesAsync();
+
+            var userDTO = UserToDTO(user);
+            userDTO.Password = null;
+
+            return userDTO;
+        }
+
         // GET: api/Users
         [HttpGet]
+        [Role(AccessLevel.Admin)]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             if (_context.Users == null)
@@ -307,6 +332,7 @@ namespace StoreAPI.Controllers
 
         // GET: api/Users/search?query=johndoe
         [HttpGet("search")]
+        [Role(AccessLevel.Admin)]
         public async Task<ActionResult<IEnumerable<UserDTO>>> SearchUsers(string query)
         {
             if (_context.Users == null)
@@ -353,6 +379,7 @@ namespace StoreAPI.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Role(AccessLevel.Admin)]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
             if (_context.Users == null)
@@ -381,6 +408,7 @@ namespace StoreAPI.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Role(AccessLevel.Admin)]
         public async Task<IActionResult> DeleteUser(long id)
         {
             if (_context.Users == null)

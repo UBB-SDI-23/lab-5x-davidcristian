@@ -28,7 +28,7 @@ export const ShiftUpdate = () => {
     const [employeeName, setEmployeeName] = useState("");
     const [storeName, setStoreName] = useState("");
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [shift, setShift] = useState<StoreShift>({
         startDate: "",
         endDate: "",
