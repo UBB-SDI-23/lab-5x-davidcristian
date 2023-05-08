@@ -76,6 +76,7 @@ namespace StoreAPI.Controllers
                 return NotFound();
             
             var storeEmployee = await _context.StoreEmployees
+                .Include(x => x.User)
                 .Include(x => x.StoreEmployeeRole)
                 .Include(x => x.StoreShifts)
                 .ThenInclude(x => x.Store)
@@ -115,6 +116,13 @@ namespace StoreAPI.Controllers
             var storeEmployee = await _context.StoreEmployees.FindAsync(id);
             if (storeEmployee == null)
                 return NotFound();
+
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && storeEmployee.UserId != extracted.Item1)
+                return Unauthorized("You can only update your own entities.");
 
             // validate the store employee
             var validationResult = _validator.Validate(employeeDTO);
@@ -158,11 +166,9 @@ namespace StoreAPI.Controllers
             if (_context.StoreEmployees == null)
                 return Problem("Entity set 'StoreContext.StoreEmployees' is null.");
 
-            // Extract user id from the JWT token
-            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
-            {
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
                 return Unauthorized("Invalid token.");
-            }
 
             // validate the store employee
             var validationResult = _validator.Validate(employeeDTO);
@@ -188,7 +194,7 @@ namespace StoreAPI.Controllers
                 StoreEmployeeRoleId = employeeDTO.StoreEmployeeRoleId,
                 StoreEmployeeRole = storeEmployeeRole,
 
-                UserId = userId
+                UserId = extracted.Item1,
             };
 
             _context.StoreEmployees.Add(storeEmployee);
@@ -210,6 +216,13 @@ namespace StoreAPI.Controllers
             var storeEmployee = await _context.StoreEmployees.FindAsync(id);
             if (storeEmployee == null)
                 return NotFound();
+
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && storeEmployee.UserId != extracted.Item1)
+                return Unauthorized("You can only delete your own entities.");
 
             // delete all shifts for this employee
             var storeShifts = await _context.StoreShifts

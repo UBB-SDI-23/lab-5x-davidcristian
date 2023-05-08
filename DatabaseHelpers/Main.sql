@@ -118,7 +118,12 @@ GO
 
 INSERT INTO ConfirmationCodes([UserId], [Code], [Expiration], [Used])
 VALUES
-	(10004, 'a', '2100-01-01 00:00:00.0000000', 0)
+	(10004, 'd', '2100-01-01 00:00:00.0000000', 0)
+GO
+
+INSERT INTO ConfirmationCodes([UserId], [Code], [Expiration], [Used])
+VALUES
+	(10004, 'a', '2000-01-01 00:00:00.0000000', 0)
 GO
 
 SELECT * FROM ConfirmationCodes

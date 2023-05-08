@@ -72,6 +72,7 @@ namespace StoreAPI.Controllers
                 return NotFound();
 
             var store = await _context.Stores
+                .Include(x => x.User)
                 .Include(x => x.StoreShifts)
                 .ThenInclude(x => x.StoreEmployee)
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -111,6 +112,13 @@ namespace StoreAPI.Controllers
             if (store == null)
                 return NotFound();
 
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && store.UserId != extracted.Item1)
+                return Unauthorized("You can only update your own entities.");
+
             store.Name = storeDTO.Name;
             store.Description = storeDTO.Description;
 
@@ -146,11 +154,9 @@ namespace StoreAPI.Controllers
             if (_context.Stores == null)
                 return Problem("Entity set 'StoreContext.Stores' is null.");
 
-            // Extract user id from the JWT token
-            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
-            {
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
                 return Unauthorized("Invalid token.");
-            }
 
             var store = new Store
             {
@@ -169,7 +175,7 @@ namespace StoreAPI.Controllers
                 OpenDate = storeDTO.OpenDate,
                 CloseDate = storeDTO.CloseDate,
 
-                UserId = userId
+                UserId = extracted.Item1,
             };
 
             _context.Stores.Add(store);
@@ -191,6 +197,13 @@ namespace StoreAPI.Controllers
             var store = await _context.Stores.FindAsync(id);
             if (store == null)
                 return NotFound();
+
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && store.UserId != extracted.Item1)
+                return Unauthorized("You can only delete your own entities.");
 
             // delete all shifts for this store
             var storeShifts = await _context.StoreShifts

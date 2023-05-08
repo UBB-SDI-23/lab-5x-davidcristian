@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using StoreAPI.Attributes;
 using StoreAPI.Models;
 using StoreAPI.Validators;
 
@@ -154,7 +155,6 @@ namespace StoreAPI.Controllers
 
             user.AccessLevel = AccessLevel.Regular;
             confirmationCode.Used = true;
-
             await _context.SaveChangesAsync();
 
             return Ok("Account successfully confirmed.");
@@ -286,6 +286,7 @@ namespace StoreAPI.Controllers
                 Name = user.Name,
                 Password = null,
 
+                AccessLevel = user.AccessLevel,
                 UserProfile = user.UserProfile,
 
                 RoleCount = roleCount,
@@ -317,6 +318,7 @@ namespace StoreAPI.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Role(AccessLevel.Admin)]
         public async Task<IActionResult> PutUser(long id, UserDTO userDTO)
         {
             if (id != userDTO.Id)
@@ -400,6 +402,19 @@ namespace StoreAPI.Controllers
                 Name = user.Name,
                 Password = user.Password,
             };
+        }
+
+        public static Tuple<long, AccessLevel>? ExtractJWTToken(ClaimsPrincipal claimsPrincipal)
+        {
+            var userIdClaim = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !long.TryParse(userIdClaim.Value, out long userId))
+                return null;
+
+            var accessLevelClaim = claimsPrincipal.FindFirst(ClaimTypes.Role);
+            if (accessLevelClaim == null || !Enum.TryParse<AccessLevel>(accessLevelClaim.Value, out var userAccessLevel))
+                return null;
+
+            return new Tuple<long, AccessLevel>(userId, userAccessLevel);
         }
     }
 }

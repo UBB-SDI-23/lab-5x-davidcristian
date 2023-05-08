@@ -14,7 +14,7 @@ import { Link, useParams } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken } from "../../auth";
+import { getAuthToken, isAuthorized } from "../../auth";
 import { Employee, Gender } from "../../models/Employee";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -138,12 +138,15 @@ export const EmployeeDetails = () => {
                             variant="text"
                             size="large"
                             sx={{
-                                color: "green",
+                                color: isAuthorized(employee?.user?.id)
+                                    ? "green"
+                                    : "gray",
                                 textTransform: "none",
                                 mt: 1,
                                 ml: 2.4,
                             }}
                             startIcon={<AccessTimeFilledIcon />}
+                            disabled={!isAuthorized(employee?.user?.id)}
                         >
                             Add Shift
                         </Button>
@@ -159,6 +162,7 @@ export const EmployeeDetails = () => {
                                 textTransform: "none",
                             }}
                             startIcon={<EditIcon />}
+                            disabled={!isAuthorized(employee?.user?.id)}
                         >
                             Edit
                         </Button>
@@ -168,8 +172,14 @@ export const EmployeeDetails = () => {
                             to={`/employees/${employeeId}/delete`}
                             variant="text"
                             size="large"
-                            sx={{ color: "red", textTransform: "none" }}
+                            sx={{
+                                color: isAuthorized(employee?.user?.id)
+                                    ? "red"
+                                    : "gray",
+                                textTransform: "none",
+                            }}
                             startIcon={<DeleteForeverIcon />}
+                            disabled={!isAuthorized(employee?.user?.id)}
                         >
                             Delete
                         </Button>

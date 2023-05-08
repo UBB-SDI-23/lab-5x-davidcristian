@@ -20,7 +20,7 @@ import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { Store, StoreCategory } from "../../models/Store";
-import { getAccount, getAuthToken } from "../../auth";
+import { isAuthorized, getAccount, getAuthToken } from "../../auth";
 
 import AddIcon from "@mui/icons-material/Add";
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
@@ -268,16 +268,42 @@ export const AllStores = () => {
                                                 component={Link}
                                                 sx={{ ml: 1, mr: 1 }}
                                                 to={`/stores/${store.id}/edit`}
+                                                disabled={
+                                                    !isAuthorized(
+                                                        store.user?.id
+                                                    )
+                                                }
                                             >
-                                                <EditIcon />
+                                                <Tooltip
+                                                    title="Edit store"
+                                                    arrow
+                                                >
+                                                    <EditIcon />
+                                                </Tooltip>
                                             </IconButton>
                                             <IconButton
                                                 component={Link}
                                                 to={`/stores/${store.id}/delete`}
+                                                disabled={
+                                                    !isAuthorized(
+                                                        store.user?.id
+                                                    )
+                                                }
                                             >
-                                                <DeleteForeverIcon
-                                                    sx={{ color: "red" }}
-                                                />
+                                                <Tooltip
+                                                    title="Delete store"
+                                                    arrow
+                                                >
+                                                    <DeleteForeverIcon
+                                                        sx={{
+                                                            color: isAuthorized(
+                                                                store.user?.id
+                                                            )
+                                                                ? "red"
+                                                                : "gray",
+                                                        }}
+                                                    />
+                                                </Tooltip>
                                             </IconButton>
                                         </Box>
                                     </TableCell>

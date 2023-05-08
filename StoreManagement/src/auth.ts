@@ -1,4 +1,4 @@
-import { User } from "./models/User";
+import { User, AccessLevel } from "./models/User";
 import jwt_decode from "jwt-decode";
 
 interface JwtPayload {
@@ -14,6 +14,11 @@ export const logOut = () => {
     setAccount(null);
 };
 
+export const isAuthorized = (userId: number | undefined) => {
+    return account !== null && account.accessLevel !== undefined
+        && (account.accessLevel > AccessLevel.Regular || (account.id === userId))
+}
+
 export const setAuthToken = (newToken: string | null) => {
     token = newToken;
     if (!token) return;
@@ -28,6 +33,9 @@ export const setAuthToken = (newToken: string | null) => {
 export const getAuthToken = () => {
     if (token && tokenExpirationDate && tokenExpirationDate < Date.now()) {
         logOut();
+
+        // TODO: Redirect to login page
+        // TODO: Show snackbar
     }
 
     return token;

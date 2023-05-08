@@ -18,7 +18,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_API_URL, formatDate, getEnumValues } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { logOut } from "../../auth";
+import { getAuthToken, logOut } from "../../auth";
 import { UserRegisterDTO } from "../../models/UserRegisterDTO";
 import { Gender } from "../../models/Employee";
 import { MaritalStatus } from "../../models/UserProfile";
@@ -49,7 +49,11 @@ export const UserRegister = () => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/users/register`, user)
+                .post(`${BACKEND_API_URL}/users/register`, user, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then((response) => {
                     console.log(response);
                     const token = response.data.token;
@@ -60,7 +64,7 @@ export const UserRegister = () => {
                     const expirationInMinutes = Math.floor(
                         (expirationDateTime.getTime() -
                             new Date().getTime() +
-                            1000) /
+                            1000 * 59) /
                             (1000 * 60)
                     );
 

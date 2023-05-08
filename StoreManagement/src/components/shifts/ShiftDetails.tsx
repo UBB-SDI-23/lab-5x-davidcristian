@@ -14,7 +14,7 @@ import { Link, useParams } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken } from "../../auth";
+import { getAuthToken, isAuthorized } from "../../auth";
 import { StoreShift } from "../../models/StoreShift";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -115,6 +115,7 @@ export const ShiftDetails = () => {
                                 textTransform: "none",
                             }}
                             startIcon={<EditIcon />}
+                            disabled={!isAuthorized(shift?.user?.id)}
                         >
                             Edit
                         </Button>
@@ -124,8 +125,14 @@ export const ShiftDetails = () => {
                             to={`/shifts/${storeId}/${employeeId}/delete`}
                             variant="text"
                             size="large"
-                            sx={{ color: "red", textTransform: "none" }}
+                            sx={{
+                                color: isAuthorized(shift?.user?.id)
+                                    ? "red"
+                                    : "gray",
+                                textTransform: "none",
+                            }}
                             startIcon={<DeleteForeverIcon />}
+                            disabled={!isAuthorized(shift?.user?.id)}
                         >
                             Delete
                         </Button>

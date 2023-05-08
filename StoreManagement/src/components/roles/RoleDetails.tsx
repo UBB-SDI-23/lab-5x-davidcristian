@@ -14,7 +14,7 @@ import { Link, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken } from "../../auth";
+import { isAuthorized, getAuthToken } from "../../auth";
 import { EmployeeRole } from "../../models/EmployeeRole";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -126,6 +126,7 @@ export const RoleDetails = () => {
                                 textTransform: "none",
                             }}
                             startIcon={<EditIcon />}
+                            disabled={!isAuthorized(role?.user?.id)}
                         >
                             Edit
                         </Button>
@@ -135,8 +136,14 @@ export const RoleDetails = () => {
                             to={`/roles/${roleId}/delete`}
                             variant="text"
                             size="large"
-                            sx={{ color: "red", textTransform: "none" }}
+                            sx={{
+                                color: isAuthorized(role?.user?.id)
+                                    ? "red"
+                                    : "gray",
+                                textTransform: "none",
+                            }}
                             startIcon={<DeleteForeverIcon />}
+                            disabled={!isAuthorized(role?.user?.id)}
                         >
                             Delete
                         </Button>
