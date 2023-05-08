@@ -15,8 +15,8 @@ import { Link, useParams } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken, updatePref } from "../../auth";
-import { User } from "../../models/User";
+import { getAccount, getAuthToken, updatePref } from "../../auth";
+import { AccessLevel, User } from "../../models/User";
 import { Gender } from "../../models/Employee";
 import { MaritalStatus } from "../../models/UserProfile";
 
@@ -123,13 +123,27 @@ export const UserDetails = () => {
         }
     }
 
-    function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = event.target.value.replace(/[^\d]/g, "");
-        setPreferenceText(value);
-    }
-
     function handleInputKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
-        if (event.key === "Enter") {
+        const key = event.key;
+
+        // Only allow digits (0-9) and Enter
+        if (
+            ![
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "Enter",
+            ].includes(key)
+        ) {
+            event.preventDefault();
+        } else if (key === "Enter") {
             parseData();
         }
     }
@@ -163,6 +177,12 @@ export const UserDetails = () => {
 
                         <Box sx={{ ml: 1 }}>
                             <p>Name: {user?.name}</p>
+                            <p>
+                                Access Level:{" "}
+                                {user == null || user.accessLevel == null
+                                    ? ""
+                                    : AccessLevel[user.accessLevel]}
+                            </p>
                             <p>Bio: {user?.userProfile?.bio}</p>
                             <p>Location: {user?.userProfile?.location}</p>
                             <p>
@@ -181,42 +201,51 @@ export const UserDetails = () => {
                                     ? ""
                                     : MaritalStatus[user.userProfile.gender]}
                             </p>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    marginTop: 16,
-                                    marginBottom: 16,
-                                }}
-                            >
-                                <p
+                            {user?.id === getAccount()?.id && (
+                                <div
                                     style={{
-                                        marginRight: 8,
-                                        userSelect: "none",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        marginTop: 16,
+                                        marginBottom: 16,
                                     }}
                                 >
-                                    {`Page Preference: `}
-                                </p>
-                                <TextField
-                                    value={preferenceText}
-                                    type="text"
-                                    inputProps={{
-                                        min: 1,
-                                        style: { textAlign: "center" },
-                                    }}
-                                    onChange={handleInputChange}
-                                    onKeyPress={handleInputKeyPress}
-                                    variant="outlined"
-                                    size="small"
-                                    style={{
-                                        width: 100,
-                                        marginRight: 16,
-                                    }}
-                                />
-                                <Button variant="contained" onClick={parseData}>
-                                    Save
-                                </Button>
-                            </div>
+                                    <p
+                                        style={{
+                                            marginRight: 8,
+                                            userSelect: "none",
+                                        }}
+                                    >
+                                        {`Page Preference: `}
+                                    </p>
+                                    <TextField
+                                        value={preferenceText}
+                                        type="text"
+                                        inputProps={{
+                                            min: 1,
+                                            style: { textAlign: "center" },
+                                        }}
+                                        onChange={(event) =>
+                                            setPreferenceText(
+                                                event.target.value
+                                            )
+                                        }
+                                        onKeyPress={handleInputKeyPress}
+                                        variant="outlined"
+                                        size="small"
+                                        style={{
+                                            width: 100,
+                                            marginRight: 16,
+                                        }}
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        onClick={parseData}
+                                    >
+                                        Save
+                                    </Button>
+                                </div>
+                            )}
 
                             <p>User insertion stats:</p>
                             <ul style={{ marginBottom: 0 }}>

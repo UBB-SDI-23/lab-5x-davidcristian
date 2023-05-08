@@ -73,6 +73,7 @@ namespace StoreAPI.Controllers
                 return NotFound();
             
             var storeShift = await _context.StoreShifts
+                .Include(x => x.User)
                 .Include(x => x.Store)
                 .Include(x => x.StoreEmployee)
                 .FirstOrDefaultAsync(x => x.StoreId == sid && x.StoreEmployeeId == eid);
@@ -94,6 +95,13 @@ namespace StoreAPI.Controllers
             var storeShift = await _context.StoreShifts.FindAsync(sid, eid);
             if (storeShift == null)
                 return NotFound();
+
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && storeShift.UserId != extracted.Item1)
+                return Unauthorized("You can only update your own entities.");
 
             // search for the store and employee
             var store = await _context.Stores.FindAsync(sid);
@@ -133,11 +141,9 @@ namespace StoreAPI.Controllers
             if (_context.StoreShifts == null)
                 return Problem("Entity set 'StoreContext.StoreShift' is null.");
 
-            // Extract user id from the JWT token
-            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
-            {
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
                 return Unauthorized("Invalid token.");
-            }
 
             // search for the store and employee
             var store = await _context.Stores.FindAsync(shiftDTO.StoreId);
@@ -159,7 +165,7 @@ namespace StoreAPI.Controllers
                 StoreEmployeeId = shiftDTO.StoreEmployeeId,
                 StoreEmployee = employee,
 
-                UserId = userId,
+                UserId = extracted.Item1,
             };
 
             _context.StoreShifts.Add(storeShift);
@@ -189,9 +195,15 @@ namespace StoreAPI.Controllers
                 .Include(x => x.Store)
                 .Include(x => x.StoreEmployee)
                 .FirstOrDefaultAsync(x => x.StoreId == sid && x.StoreEmployeeId == eid);
-
             if (storeShift == null)
                 return NotFound();
+
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && storeShift.UserId != extracted.Item1)
+                return Unauthorized("You can only delete your own entities.");
 
             _context.StoreShifts.Remove(storeShift);
             await _context.SaveChangesAsync();

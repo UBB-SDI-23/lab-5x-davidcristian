@@ -36,7 +36,7 @@ namespace StoreAPI.Attributes
                 return;
             }
 
-            var accessLevelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            var accessLevelClaim = user.FindFirst(ClaimTypes.Role);
             if (accessLevelClaim == null || !Enum.TryParse<AccessLevel>(accessLevelClaim.Value, out var userAccessLevel) || userAccessLevel < _requiredAccessLevel)
             {
                 context.Result = new ForbidResult();

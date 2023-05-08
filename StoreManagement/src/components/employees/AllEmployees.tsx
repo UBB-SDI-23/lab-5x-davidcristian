@@ -19,7 +19,7 @@ import { Link } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAccount, getAuthToken } from "../../auth";
+import { isAuthorized, getAccount, getAuthToken } from "../../auth";
 import { Employee, Gender } from "../../models/Employee";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -375,16 +375,43 @@ export const AllEmployees = () => {
                                                 component={Link}
                                                 sx={{ ml: 1, mr: 1 }}
                                                 to={`/employees/${employee.id}/edit`}
+                                                disabled={
+                                                    !isAuthorized(
+                                                        employee.user?.id
+                                                    )
+                                                }
                                             >
-                                                <EditIcon />
+                                                <Tooltip
+                                                    title="Edit employee"
+                                                    arrow
+                                                >
+                                                    <EditIcon />
+                                                </Tooltip>
                                             </IconButton>
                                             <IconButton
                                                 component={Link}
                                                 to={`/employees/${employee.id}/delete`}
+                                                disabled={
+                                                    !isAuthorized(
+                                                        employee.user?.id
+                                                    )
+                                                }
                                             >
-                                                <DeleteForeverIcon
-                                                    sx={{ color: "red" }}
-                                                />
+                                                <Tooltip
+                                                    title="Delete employee"
+                                                    arrow
+                                                >
+                                                    <DeleteForeverIcon
+                                                        sx={{
+                                                            color: isAuthorized(
+                                                                employee.user
+                                                                    ?.id
+                                                            )
+                                                                ? "red"
+                                                                : "gray",
+                                                        }}
+                                                    />
+                                                </Tooltip>
                                             </IconButton>
                                         </Box>
                                     </TableCell>

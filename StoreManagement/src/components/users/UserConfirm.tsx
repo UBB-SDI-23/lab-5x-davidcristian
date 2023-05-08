@@ -13,6 +13,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
+import { getAuthToken } from "../../auth";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
@@ -26,7 +27,11 @@ export const UserConfirm = () => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/users/register/confirm/${code}`)
+                .post(`${BACKEND_API_URL}/users/register/confirm/${code}`, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then(() => {
                     openSnackbar("success", "Account confirmed successfully!");
                     navigate("/users/login");

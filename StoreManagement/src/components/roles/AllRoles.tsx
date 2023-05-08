@@ -19,7 +19,7 @@ import { Link } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAccount, getAuthToken } from "../../auth";
+import { isAuthorized, getAccount, getAuthToken } from "../../auth";
 import { EmployeeRole } from "../../models/EmployeeRole";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -271,16 +271,38 @@ export const AllRoles = () => {
                                                 component={Link}
                                                 sx={{ ml: 1, mr: 1 }}
                                                 to={`/roles/${role.id}/edit`}
+                                                disabled={
+                                                    !isAuthorized(role.user?.id)
+                                                }
                                             >
-                                                <EditIcon />
+                                                <Tooltip
+                                                    title="Edit role"
+                                                    arrow
+                                                >
+                                                    <EditIcon />
+                                                </Tooltip>
                                             </IconButton>
                                             <IconButton
                                                 component={Link}
                                                 to={`/roles/${role.id}/delete`}
+                                                disabled={
+                                                    !isAuthorized(role.user?.id)
+                                                }
                                             >
-                                                <DeleteForeverIcon
-                                                    sx={{ color: "red" }}
-                                                />
+                                                <Tooltip
+                                                    title="Delete role"
+                                                    arrow
+                                                >
+                                                    <DeleteForeverIcon
+                                                        sx={{
+                                                            color: isAuthorized(
+                                                                role.user?.id
+                                                            )
+                                                                ? "red"
+                                                                : "gray",
+                                                        }}
+                                                    />
+                                                </Tooltip>
                                             </IconButton>
                                         </Box>
                                     </TableCell>

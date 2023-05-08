@@ -7,8 +7,10 @@ import {
     Button,
 } from "@mui/material";
 
-import { Link, useLocation } from "react-router-dom";
-import { getAccount } from "../auth";
+import { useContext } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { SnackbarContext } from "./SnackbarContext";
+import { getAccount, logOut } from "../auth";
 
 import HomeIcon from "@mui/icons-material/Home";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
@@ -20,12 +22,33 @@ import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import GroupIcon from "@mui/icons-material/Group";
 
-import KeyIcon from "@mui/icons-material/Key";
-import AssignmentIcon from "@mui/icons-material/Assignment";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 export const AppMenu = () => {
+    const navigate = useNavigate();
+    const openSnackbar = useContext(SnackbarContext);
+
     const location = useLocation();
     const path = location.pathname;
+
+    const accountNameClick = (event: { preventDefault: () => void }) => {
+        event.preventDefault();
+
+        const account = getAccount();
+        if (account !== null) {
+            navigate(`/users/${account.id}/details`);
+        } else {
+            navigate("/users/login");
+        }
+    };
+
+    const logOutClick = (event: { preventDefault: () => void }) => {
+        event.preventDefault();
+
+        logOut();
+        navigate("/");
+        openSnackbar("info", "Logged out successfully!");
+    };
 
     return (
         <Box sx={{ flexGrow: 1, position: "sticky", top: "0", zIndex: "9" }}>
@@ -147,37 +170,38 @@ export const AppMenu = () => {
 
                     <Button
                         variant="text"
-                        to={`/users/${getAccount()?.id}/details`}
-                        component={Link}
                         color="inherit"
                         sx={{ mr: 2 }}
-                        disabled={getAccount() === null}
+                        onClick={accountNameClick}
                     >
-                        {getAccount()?.name}
+                        {getAccount()?.name ?? "Log In"}
+                    </Button>
+
+                    <Button
+                        variant="text"
+                        to="/users/register"
+                        component={Link}
+                        color="inherit"
+                        sx={{
+                            mr: 0,
+                            display: getAccount() !== null ? "none" : "inline",
+                        }}
+                    >
+                        Register
                     </Button>
 
                     <IconButton
-                        component={Link}
-                        to="/users/login"
                         size="large"
                         edge="start"
                         color="inherit"
                         aria-label="school"
-                        sx={{ mr: 2 }}
+                        sx={{
+                            mr: 0,
+                            display: getAccount() !== null ? "inline" : "none",
+                        }}
+                        onClick={logOutClick}
                     >
-                        <KeyIcon />
-                    </IconButton>
-
-                    <IconButton
-                        component={Link}
-                        to="/users/register"
-                        size="large"
-                        edge="start"
-                        color="inherit"
-                        aria-label="school"
-                        sx={{ mr: 0 }}
-                    >
-                        <AssignmentIcon />
+                        <LogoutIcon />
                     </IconButton>
                 </Toolbar>
             </AppBar>

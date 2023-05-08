@@ -14,7 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { logOut, setAccount, setAuthToken } from "../../auth";
+import { getAuthToken, logOut, setAccount, setAuthToken } from "../../auth";
 import { User } from "../../models/User";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -36,7 +36,11 @@ export const UserLogin = () => {
         event.preventDefault();
         try {
             await axios
-                .post(`${BACKEND_API_URL}/users/login`, user)
+                .post(`${BACKEND_API_URL}/users/login`, user, {
+                    headers: {
+                        Authorization: `Bearer ${getAuthToken()}`,
+                    },
+                })
                 .then((response) => {
                     console.log(response);
                     setAuthToken(response.data.token);

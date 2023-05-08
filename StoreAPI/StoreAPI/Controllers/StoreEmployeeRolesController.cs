@@ -76,6 +76,7 @@ namespace StoreAPI.Controllers
                 return NotFound();
 
             var employeeRole = await _context.StoreEmployeeRoles
+                .Include(x => x.User)
                 .Include(x => x.StoreEmployees)
                 .FirstOrDefaultAsync(x => x.Id == id);
                 //.FindAsync(id);
@@ -114,6 +115,13 @@ namespace StoreAPI.Controllers
             if (employeeRole == null)
                 return NotFound();
 
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && employeeRole.UserId != extracted.Item1)
+                return Unauthorized("You can only update your own entities.");
+
             // Validate the employee role
             var validationResult = _validator.Validate(employeeRoleDTO);
             if (validationResult != string.Empty)
@@ -122,8 +130,6 @@ namespace StoreAPI.Controllers
             employeeRole.Name = employeeRoleDTO.Name;
             employeeRole.Description = employeeRoleDTO.Description;
             employeeRole.RoleLevel = employeeRoleDTO.RoleLevel;
-            // The employees are not updated here, because
-            // the relationship remains unaffected
 
             try
             {
@@ -145,12 +151,9 @@ namespace StoreAPI.Controllers
             if (_context.StoreEmployeeRoles == null)
                 return Problem("Entity set 'StoreContext.StoreEmployeeRoles' is null.");
 
-            // TODO: use this to set the user ID everywhere
-            // Extract user id from the JWT token
-            if (!long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out long userId))
-            {
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
                 return Unauthorized("Invalid token.");
-            }
 
             // Validate the employee role
             var validationResult = _validator.Validate(employeeRoleDTO);
@@ -165,7 +168,7 @@ namespace StoreAPI.Controllers
                 RoleLevel = employeeRoleDTO.RoleLevel,
                 StoreEmployees = null!,
 
-                UserId = userId
+                UserId = extracted.Item1,
             };
 
             _context.StoreEmployeeRoles.Add(employeeRole);
@@ -187,6 +190,13 @@ namespace StoreAPI.Controllers
             var employeeRole = await _context.StoreEmployeeRoles.FindAsync(id);
             if (employeeRole == null)
                 return NotFound();
+
+            var extracted = UsersController.ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            if (extracted.Item2 == AccessLevel.Regular && employeeRole.UserId != extracted.Item1)
+                return Unauthorized("You can only delete your own entities.");
 
             _context.StoreEmployeeRoles.Remove(employeeRole);
             await _context.SaveChangesAsync();
@@ -235,7 +245,7 @@ namespace StoreAPI.Controllers
             if (_context.StoreEmployeeRoles == null)
                 return NotFound();
 
-            if (storeEmployeeIds.Distinct().Count() != storeEmployeeIds.Count())
+            if (storeEmployeeIds.Distinct().Count() != storeEmployeeIds.Count)
                 return BadRequest();
 
             var employeeRole = await _context.StoreEmployeeRoles

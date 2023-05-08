@@ -14,7 +14,7 @@ import { Link, useParams } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken } from "../../auth";
+import { getAuthToken, isAuthorized } from "../../auth";
 import { Store, StoreCategory } from "../../models/Store";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -133,12 +133,15 @@ export const StoreDetails = () => {
                             variant="text"
                             size="large"
                             sx={{
-                                color: "green",
+                                color: isAuthorized(store?.user?.id)
+                                    ? "green"
+                                    : "gray",
                                 textTransform: "none",
                                 mt: 1,
                                 ml: 2.4,
                             }}
                             startIcon={<AccessTimeFilledIcon />}
+                            disabled={!isAuthorized(store?.user?.id)}
                         >
                             Add Shift
                         </Button>
@@ -154,6 +157,7 @@ export const StoreDetails = () => {
                                 textTransform: "none",
                             }}
                             startIcon={<EditIcon />}
+                            disabled={!isAuthorized(store?.user?.id)}
                         >
                             Edit
                         </Button>
@@ -163,8 +167,14 @@ export const StoreDetails = () => {
                             to={`/stores/${storeId}/delete`}
                             variant="text"
                             size="large"
-                            sx={{ color: "red", textTransform: "none" }}
+                            sx={{
+                                color: isAuthorized(store?.user?.id)
+                                    ? "red"
+                                    : "gray",
+                                textTransform: "none",
+                            }}
                             startIcon={<DeleteForeverIcon />}
+                            disabled={!isAuthorized(store?.user?.id)}
                         >
                             Delete
                         </Button>

@@ -19,7 +19,7 @@ import { Link } from "react-router-dom";
 import { BACKEND_API_URL, formatDate } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAccount, getAuthToken } from "../../auth";
+import { isAuthorized, getAccount, getAuthToken } from "../../auth";
 import { StoreShift } from "../../models/StoreShift";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -262,7 +262,7 @@ export const AllShifts = () => {
                                                 to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/details`}
                                             >
                                                 <Tooltip
-                                                    title="View store details"
+                                                    title="View shift details"
                                                     arrow
                                                 >
                                                     <ReadMoreIcon color="primary" />
@@ -272,16 +272,42 @@ export const AllShifts = () => {
                                                 component={Link}
                                                 sx={{ ml: 1, mr: 1 }}
                                                 to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/edit`}
+                                                disabled={
+                                                    !isAuthorized(
+                                                        shift.user?.id
+                                                    )
+                                                }
                                             >
-                                                <EditIcon />
+                                                <Tooltip
+                                                    title="Edit shift"
+                                                    arrow
+                                                >
+                                                    <EditIcon />
+                                                </Tooltip>
                                             </IconButton>
                                             <IconButton
                                                 component={Link}
                                                 to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/delete`}
+                                                disabled={
+                                                    !isAuthorized(
+                                                        shift.user?.id
+                                                    )
+                                                }
                                             >
-                                                <DeleteForeverIcon
-                                                    sx={{ color: "red" }}
-                                                />
+                                                <Tooltip
+                                                    title="Delete shift"
+                                                    arrow
+                                                >
+                                                    <DeleteForeverIcon
+                                                        sx={{
+                                                            color: isAuthorized(
+                                                                shift.user?.id
+                                                            )
+                                                                ? "red"
+                                                                : "gray",
+                                                        }}
+                                                    />
+                                                </Tooltip>
                                             </IconButton>
                                         </Box>
                                     </TableCell>
