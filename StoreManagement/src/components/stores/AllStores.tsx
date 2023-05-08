@@ -289,20 +289,15 @@ export const AllStores = () => {
                                                         store.user?.id
                                                     )
                                                 }
+                                                sx={{
+                                                    color: "red",
+                                                }}
                                             >
                                                 <Tooltip
                                                     title="Delete store"
                                                     arrow
                                                 >
-                                                    <DeleteForeverIcon
-                                                        sx={{
-                                                            color: isAuthorized(
-                                                                store.user?.id
-                                                            )
-                                                                ? "red"
-                                                                : "gray",
-                                                        }}
-                                                    />
+                                                    <DeleteForeverIcon />
                                                 </Tooltip>
                                             </IconButton>
                                         </Box>

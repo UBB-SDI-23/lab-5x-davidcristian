@@ -137,9 +137,7 @@ export const RoleDetails = () => {
                             variant="text"
                             size="large"
                             sx={{
-                                color: isAuthorized(role?.user?.id)
-                                    ? "red"
-                                    : "gray",
+                                color: "red",
                                 textTransform: "none",
                             }}
                             startIcon={<DeleteForeverIcon />}

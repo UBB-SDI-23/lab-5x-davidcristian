@@ -27,6 +27,7 @@ import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
+// TODO: Fix pagination when there are no entities
 export const AllEmployees = () => {
     const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(true);
@@ -341,7 +342,8 @@ export const AllEmployees = () => {
                                         {employee.salary}
                                     </TableCell>
                                     <TableCell align="left">
-                                        {employee.storeEmployeeRole?.name}
+                                        {employee.storeEmployeeRole?.name ??
+                                            "Unknown"}
                                     </TableCell>
                                     <TableCell align="left">
                                         {employee.storeShifts?.length}
@@ -396,21 +398,15 @@ export const AllEmployees = () => {
                                                         employee.user?.id
                                                     )
                                                 }
+                                                sx={{
+                                                    color: "red",
+                                                }}
                                             >
                                                 <Tooltip
                                                     title="Delete employee"
                                                     arrow
                                                 >
-                                                    <DeleteForeverIcon
-                                                        sx={{
-                                                            color: isAuthorized(
-                                                                employee.user
-                                                                    ?.id
-                                                            )
-                                                                ? "red"
-                                                                : "gray",
-                                                        }}
-                                                    />
+                                                    <DeleteForeverIcon />
                                                 </Tooltip>
                                             </IconButton>
                                         </Box>

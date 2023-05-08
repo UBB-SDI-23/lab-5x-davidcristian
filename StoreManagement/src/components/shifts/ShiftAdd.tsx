@@ -68,7 +68,7 @@ export const ShiftAdd = () => {
                 >
                     <Button
                         variant="contained"
-                        color="error"
+                        color="primary"
                         sx={{ width: 100, mr: 2 }}
                         onClick={handleGoButton}
                     >

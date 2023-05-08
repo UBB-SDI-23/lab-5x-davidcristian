@@ -126,9 +126,7 @@ export const ShiftDetails = () => {
                             variant="text"
                             size="large"
                             sx={{
-                                color: isAuthorized(shift?.user?.id)
-                                    ? "red"
-                                    : "gray",
+                                color: "red",
                                 textTransform: "none",
                             }}
                             startIcon={<DeleteForeverIcon />}

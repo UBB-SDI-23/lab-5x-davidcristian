@@ -224,13 +224,6 @@ namespace StoreAPI.Controllers
             if (extracted.Item2 == AccessLevel.Regular && storeEmployee.UserId != extracted.Item1)
                 return Unauthorized("You can only delete your own entities.");
 
-            // delete all shifts for this employee
-            var storeShifts = await _context.StoreShifts
-                .Where(x => x.StoreEmployeeId == id)
-                .ToListAsync();
-            if (storeShifts != null)
-                _context.StoreShifts.RemoveRange(storeShifts);
-
             _context.StoreEmployees.Remove(storeEmployee);
             await _context.SaveChangesAsync();
 

@@ -24,7 +24,6 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
-// TODO: also show page preference setting for Admins
 export const UserDetails = () => {
     const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(true);

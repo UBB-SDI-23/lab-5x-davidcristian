@@ -61,11 +61,11 @@ GO
 
 -- Recreate constraints
 ALTER TABLE StoreEmployees
-ADD CONSTRAINT FK_StoreEmployees_StoreEmployeeRoles_StoreEmployeeRoleId FOREIGN KEY (StoreEmployeeRoleId) REFERENCES StoreEmployeeRoles (Id);
+ADD CONSTRAINT FK_StoreEmployees_StoreEmployeeRoles_StoreEmployeeRoleId FOREIGN KEY (StoreEmployeeRoleId) REFERENCES StoreEmployeeRoles (Id) ON DELETE SET NULL;
 
 ALTER TABLE StoreShifts
-ADD CONSTRAINT FK_StoreShifts_Stores_StoreId FOREIGN KEY (StoreId) REFERENCES Stores (Id),
-	CONSTRAINT FK_StoreShifts_StoreEmployees_StoreEmployeeId FOREIGN KEY (StoreEmployeeId) REFERENCES StoreEmployees (Id);
+ADD CONSTRAINT FK_StoreShifts_Stores_StoreId FOREIGN KEY (StoreId) REFERENCES Stores (Id) ON DELETE CASCADE,
+	CONSTRAINT FK_StoreShifts_StoreEmployees_StoreEmployeeId FOREIGN KEY (StoreEmployeeId) REFERENCES StoreEmployees (Id) ON DELETE CASCADE;
 
 ALTER TABLE UserProfiles
 ADD CONSTRAINT FK_UserProfiles_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE;

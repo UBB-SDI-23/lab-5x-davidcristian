@@ -288,20 +288,15 @@ export const AllRoles = () => {
                                                 disabled={
                                                     !isAuthorized(role.user?.id)
                                                 }
+                                                sx={{
+                                                    color: "red",
+                                                }}
                                             >
                                                 <Tooltip
                                                     title="Delete role"
                                                     arrow
                                                 >
-                                                    <DeleteForeverIcon
-                                                        sx={{
-                                                            color: isAuthorized(
-                                                                role.user?.id
-                                                            )
-                                                                ? "red"
-                                                                : "gray",
-                                                        }}
-                                                    />
+                                                    <DeleteForeverIcon />
                                                 </Tooltip>
                                             </IconButton>
                                         </Box>
