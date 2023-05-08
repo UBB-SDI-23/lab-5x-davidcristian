@@ -29,7 +29,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 export const AllStores = () => {
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [stores, setStores] = useState<Store[]>([]);
 
     const [pageSize] = useState(getAccount()?.userProfile?.pagePreference ?? 5);

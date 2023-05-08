@@ -28,7 +28,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 export const EmployeeShiftAdd = () => {
     const navigate = useNavigate();
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const { employeeId } = useParams();
     const [employeeName, setEmployeeName] = useState("");

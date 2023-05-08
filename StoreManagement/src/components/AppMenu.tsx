@@ -181,7 +181,7 @@ export const AppMenu = () => {
                             mr: 0,
                             display:
                                 getAccount()?.accessLevel === AccessLevel.Admin
-                                    ? "inline"
+                                    ? "inline-flex"
                                     : "none",
                         }}
                     >
@@ -204,7 +204,8 @@ export const AppMenu = () => {
                         color="inherit"
                         sx={{
                             mr: 0,
-                            display: getAccount() !== null ? "none" : "inline",
+                            display:
+                                getAccount() !== null ? "none" : "inline-flex",
                         }}
                     >
                         Register
@@ -217,7 +218,8 @@ export const AppMenu = () => {
                         aria-label="school"
                         sx={{
                             mr: 0,
-                            display: getAccount() !== null ? "inline" : "none",
+                            display:
+                                getAccount() !== null ? "inline-flex" : "none",
                         }}
                         onClick={logOutClick}
                     >

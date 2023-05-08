@@ -24,7 +24,7 @@ import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 
 export const StoreDetails = () => {
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const { storeId } = useParams();
     const [store, setStore] = useState<Store>();

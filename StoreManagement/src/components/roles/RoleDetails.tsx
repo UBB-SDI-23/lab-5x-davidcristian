@@ -23,7 +23,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 export const RoleDetails = () => {
     const openSnackbar = useContext(SnackbarContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const { roleId } = useParams();
     const [role, setRole] = useState<EmployeeRole>();
