@@ -293,20 +293,15 @@ export const AllShifts = () => {
                                                         shift.user?.id
                                                     )
                                                 }
+                                                sx={{
+                                                    color: "red",
+                                                }}
                                             >
                                                 <Tooltip
                                                     title="Delete shift"
                                                     arrow
                                                 >
-                                                    <DeleteForeverIcon
-                                                        sx={{
-                                                            color: isAuthorized(
-                                                                shift.user?.id
-                                                            )
-                                                                ? "red"
-                                                                : "gray",
-                                                        }}
-                                                    />
+                                                    <DeleteForeverIcon />
                                                 </Tooltip>
                                             </IconButton>
                                         </Box>

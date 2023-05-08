@@ -28,8 +28,6 @@ namespace StoreAPI.Models
 
         public static async Task SeedUsersAndProfilesAsync(StoreContext context, int n)
         {
-            if (await context.Users.AnyAsync()) return;
-            //if (await context.UserProfiles.AnyAsync()) return;
             var existingUserIds = await context.Users.Select(u => u.Id).ToListAsync();
             var userNames = await context.Users.Select(u => u.Name).ToListAsync();
 
@@ -86,10 +84,8 @@ namespace StoreAPI.Models
             await context.SaveChangesAsync();
         }
 
-        public static async Task SeedEmployeeRolesAsync(StoreContext context, int n)
+        public static async Task SeedEmployeeRolesAsync(StoreContext context, int n, long? userId = null)
         {
-            if (await context.StoreEmployeeRoles.AnyAsync()) return;
-
             var userIds = await context.Users.Select(u => u.Id).ToListAsync();
             var randomUserId = new Func<long>(() => userIds[new Random().Next(userIds.Count)]);
 
@@ -97,7 +93,7 @@ namespace StoreAPI.Models
                 .RuleFor(er => er.Name, f => f.Name.JobTitle())
                 .RuleFor(er => er.Description, f => string.Join("\n", f.Lorem.Paragraphs(3)))
                 .RuleFor(er => er.RoleLevel, f => f.Random.Int(MIN_ROLE_LEVEL, MAX_ROLE_LEVEL))
-                .RuleFor(er => er.UserId, randomUserId());
+                .RuleFor(er => er.UserId, userId == null ? randomUserId() : userId);
 
             var employeeRoles = faker.Generate(n);
 
@@ -105,10 +101,8 @@ namespace StoreAPI.Models
             await context.SaveChangesAsync();
         }
 
-        public static async Task SeedEmployeesAsync(StoreContext context, int n)
+        public static async Task SeedEmployeesAsync(StoreContext context, int n, long? userId = null)
         {
-            if (await context.StoreEmployees.AnyAsync()) return;
-
             var roleIds = await context.StoreEmployeeRoles.Select(er => er.Id).ToListAsync();
             var randomRoleId = new Func<long>(() => roleIds[new Random().Next(roleIds.Count)]);
 
@@ -123,7 +117,7 @@ namespace StoreAPI.Models
                 .RuleFor(e => e.TerminationDate, (f, e) => e.EmploymentDate.HasValue && f.Random.Bool(0.2f) ? f.Date.Between(e.EmploymentDate.Value, DateTime.Now) : null)
                 .RuleFor(e => e.Salary, f => Math.Round(f.Random.Double(30000, 120000), 2))
                 .RuleFor(e => e.StoreEmployeeRoleId, randomRoleId())
-                .RuleFor(e => e.UserId, randomUserId());
+                .RuleFor(e => e.UserId, userId == null ? randomUserId() : userId);
 
             var employees = faker.Generate(n);
 
@@ -131,10 +125,8 @@ namespace StoreAPI.Models
             await context.SaveChangesAsync();
         }
 
-        public static async Task SeedStoresAsync(StoreContext context, int n)
+        public static async Task SeedStoresAsync(StoreContext context, int n, long? userId = null)
         {
-            if (await context.Stores.AnyAsync()) return;
-
             var userIds = await context.Users.Select(u => u.Id).ToListAsync();
             var randomUserId = new Func<long>(() => userIds[new Random().Next(userIds.Count)]);
 
@@ -149,7 +141,7 @@ namespace StoreAPI.Models
                 .RuleFor(s => s.Country, f => f.Address.Country())
                 .RuleFor(s => s.OpenDate, f => f.Date.Between(DateTime.Now.AddYears(-20), DateTime.Now))
                 .RuleFor(s => s.CloseDate, (f, s) => s.OpenDate.HasValue && f.Random.Bool(0.1f) ? f.Date.Between(s.OpenDate.Value, DateTime.Now) : null)
-                .RuleFor(s => s.UserId, randomUserId());
+                .RuleFor(s => s.UserId, userId == null ? randomUserId() : userId);
 
             var stores = faker.Generate(n);
 
@@ -163,9 +155,10 @@ namespace StoreAPI.Models
             public long EmployeeId { get; set; }
         }
 
-        public static async Task SeedStoreShiftsAsync(StoreContext context, int n)
+        public static async Task SeedStoreShiftsAsync(StoreContext context, int n, long? userId = null)
         {
-            if (await context.StoreShifts.AnyAsync()) return;
+            var userIds = await context.Users.Select(u => u.Id).ToListAsync();
+            var randomUserId = new Func<long>(() => userIds[new Random().Next(userIds.Count)]);
 
             var storeIds = await context.Stores.Select(s => s.Id).ToListAsync();
             var employeeIds = await context.StoreEmployees.Select(e => e.Id).ToListAsync();
@@ -174,7 +167,7 @@ namespace StoreAPI.Models
             var faker = new Faker<StoreShift>()
                 .RuleFor(ss => ss.StartDate, f => f.Date.Between(DateTime.Now.AddYears(-5), DateTime.Now))
                 .RuleFor(ss => ss.EndDate, (f, ss) => ss.StartDate.HasValue ? f.Date.Between(ss.StartDate.Value, DateTime.Now) : null)
-                .RuleFor(ss => ss.UserId, f => f.Random.Int(1, n));
+                .RuleFor(ss => ss.UserId, userId == null ? randomUserId() : userId);
 
             // store generated store and employee ID pairs in a list
             // to prevent duplicate store shifts
@@ -192,13 +185,14 @@ namespace StoreAPI.Models
                 long current = 0;
                 while (storeEmployeePairs.Any(p => p.StoreId == storeId && p.EmployeeId == employeeId))
                 {
-                    if (current++ > 1000)
+                    if (current++ > STACK_OVERFLOW_LOOPS)
                         throw new Exception("Could not find a unique pair of store and employee");
 
                     storeId = storeIds[new Random().Next(storeIds.Count)];
                     employeeId = employeeIds[new Random().Next(employeeIds.Count)];
                 }
                 var pair = new StoreEmployeePair { StoreId = storeId, EmployeeId = employeeId };
+                storeEmployeePairs.Add(pair);
                 return pair;
             });
 
@@ -223,14 +217,26 @@ namespace StoreAPI.Models
         {
             using (var context = new StoreContext(serviceProvider.GetRequiredService<DbContextOptions<StoreContext>>()))
             {
+                return;
+
                 var logger = serviceProvider.GetRequiredService<ILogger<SeedDataLogger>>();
                 logger.LogInformation("Seeding process started at {time}", DateTimeOffset.UtcNow);
 
-                await SeedUsersAndProfilesAsync(context, USERS_COUNT);
-                await SeedEmployeeRolesAsync(context, EMPLOYEE_ROLES_COUNT);
-                await SeedEmployeesAsync(context, EMPLOYEES_COUNT);
-                await SeedStoresAsync(context, STORES_COUNT);
-                await SeedStoreShiftsAsync(context, STORE_SHIFTS_COUNT);
+                //if (!await context.UserProfiles.AnyAsync())
+                if (!await context.Users.AnyAsync())
+                    await SeedUsersAndProfilesAsync(context, USERS_COUNT);
+
+                if (!await context.StoreEmployeeRoles.AnyAsync())
+                    await SeedEmployeeRolesAsync(context, EMPLOYEE_ROLES_COUNT);
+                
+                if (!await context.StoreEmployees.AnyAsync())
+                    await SeedEmployeesAsync(context, EMPLOYEES_COUNT);
+                
+                if (!await context.Stores.AnyAsync())
+                    await SeedStoresAsync(context, STORES_COUNT);
+                
+                if (!await context.StoreShifts.AnyAsync())
+                    await SeedStoreShiftsAsync(context, STORE_SHIFTS_COUNT);
 
                 logger.LogInformation("Seeding process finished at {time}", DateTimeOffset.UtcNow);
             }

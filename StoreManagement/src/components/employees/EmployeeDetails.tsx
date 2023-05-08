@@ -113,7 +113,10 @@ export const EmployeeDetails = () => {
                                 {formatDate(employee?.terminationDate)}
                             </p>
                             <p>Salary: {employee?.salary}</p>
-                            <p>Role: {employee?.storeEmployeeRole?.name}</p>
+                            <p>
+                                Role:{" "}
+                                {employee?.storeEmployeeRole?.name ?? "Unknown"}
+                            </p>
                             <p>Employee shifts:</p>
                             {employee?.storeShifts?.length ? (
                                 <ul style={{ marginBottom: 0 }}>
@@ -138,9 +141,7 @@ export const EmployeeDetails = () => {
                             variant="text"
                             size="large"
                             sx={{
-                                color: isAuthorized(employee?.user?.id)
-                                    ? "green"
-                                    : "gray",
+                                color: "green",
                                 textTransform: "none",
                                 mt: 1,
                                 ml: 2.4,
@@ -173,9 +174,7 @@ export const EmployeeDetails = () => {
                             variant="text"
                             size="large"
                             sx={{
-                                color: isAuthorized(employee?.user?.id)
-                                    ? "red"
-                                    : "gray",
+                                color: "red",
                                 textTransform: "none",
                             }}
                             startIcon={<DeleteForeverIcon />}

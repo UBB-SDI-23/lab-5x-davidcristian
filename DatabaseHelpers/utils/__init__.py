@@ -1,5 +1,5 @@
-from utils import AccessLevel, MaritalStatus, Gender, StoreCategory
-from generate import start_generation
+from .utils import AccessLevel, MaritalStatus, Gender, StoreCategory
+from .generate import start_generation
 
 __all__ = [
     "AccessLevel",

@@ -317,21 +317,15 @@ export const EmployeeFilter = () => {
                                                         employee.user?.id
                                                     )
                                                 }
+                                                sx={{
+                                                    color: "red",
+                                                }}
                                             >
                                                 <Tooltip
                                                     title="Delete employee"
                                                     arrow
                                                 >
-                                                    <DeleteForeverIcon
-                                                        sx={{
-                                                            color: isAuthorized(
-                                                                employee.user
-                                                                    ?.id
-                                                            )
-                                                                ? "red"
-                                                                : "gray",
-                                                        }}
-                                                    />
+                                                    <DeleteForeverIcon />
                                                 </Tooltip>
                                             </IconButton>
                                         </Box>

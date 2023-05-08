@@ -48,7 +48,8 @@ namespace StoreAPI.Models
             modelBuilder.Entity<StoreEmployee>()
                 .HasOne(e => e.StoreEmployeeRole)
                 .WithMany(r => r.StoreEmployees)
-                .HasForeignKey(e => e.StoreEmployeeRoleId);
+                .HasForeignKey(e => e.StoreEmployeeRoleId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Define many-to-many relationships
             modelBuilder.Entity<StoreShift>()
@@ -57,12 +58,14 @@ namespace StoreAPI.Models
             modelBuilder.Entity<StoreShift>()
                 .HasOne(ss => ss.Store)
                 .WithMany(s => s.StoreShifts)
-                .HasForeignKey(ss => ss.StoreId);
+                .HasForeignKey(ss => ss.StoreId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<StoreShift>()
                 .HasOne(ss => ss.StoreEmployee)
                 .WithMany(e => e.StoreShifts)
-                .HasForeignKey(ss => ss.StoreEmployeeId);
+                .HasForeignKey(ss => ss.StoreEmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Assign users to entities
             modelBuilder.Entity<ConfirmationCode>()

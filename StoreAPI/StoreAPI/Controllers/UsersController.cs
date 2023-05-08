@@ -384,7 +384,7 @@ namespace StoreAPI.Controllers
         {
             if (_context.Users == null)
                 return Problem("Entity set 'StoreContext.Users' is null.");
-            
+
             var user = new User
             {
                 Name = userDTO.Name,
@@ -393,7 +393,7 @@ namespace StoreAPI.Controllers
 
                 UserProfile = new UserProfile
                 {
-                    
+
                 },
             };
 
@@ -422,6 +422,106 @@ namespace StoreAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // DELETE: api/Users/StoreEmployeeRoles
+        [HttpDelete("StoreEmployeeRoles")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> DeleteRoles()
+        {
+            long count = await _context.StoreEmployeeRoles
+                .CountAsync();
+
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [StoreEmployeeRoles]");
+            return Ok($"Deleted {count} store employee roles.");
+        }
+
+        // DELETE: api/Users/StoreEmployees
+        [HttpDelete("StoreEmployees")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> DeleteEmployees()
+        {
+            long count = await _context.StoreEmployees
+                .CountAsync();
+
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [StoreEmployees]");
+            return Ok($"Deleted {count} store employees.");
+        }
+
+        // DELETE: api/Users/Stores
+        [HttpDelete("Stores")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> DeleteStores()
+        {
+            long count = await _context.Stores
+                .CountAsync();
+
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [Stores]");
+            return Ok($"Deleted {count} stores.");
+        }
+
+        // DELETE: api/Users/StoreShifts
+        [HttpDelete("StoreShifts")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> DeleteShifts()
+        {
+            long count = await _context.StoreShifts
+                .CountAsync();
+
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [StoreShifts]");
+            return Ok($"Deleted {count} store shifts.");
+        }
+
+        // POST: api/Users/StoreEmployeeRoles/5
+        [HttpPost("StoreEmployeeRoles/{count}")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> SeedEmployeeRoles(int count)
+        {
+            var extracted = ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            await SeedData.SeedEmployeeRolesAsync(_context, count, extracted.Item1);
+            return Ok($"Generated {count} store employee roles.");
+        }
+
+        // POST: api/Users/StoreEmployees/5
+        [HttpPost("StoreEmployees/{count}")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> SeedEmployees(int count)
+        {
+            var extracted = ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            await SeedData.SeedEmployeesAsync(_context, count, extracted.Item1);
+            return Ok($"Generated {count} store employees.");
+        }
+
+        // POST: api/Users/Stores/5
+        [HttpPost("Stores/{count}")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> SeedStores(int count)
+        {
+            var extracted = ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            await SeedData.SeedStoresAsync(_context, count, extracted.Item1);
+            return Ok($"Generated {count} stores.");
+        }
+
+        // POST: api/Users/StoreShifts/5
+        [HttpPost("StoreShifts/{count}")]
+        [Role(AccessLevel.Admin)]
+        public async Task<IActionResult> SeedShifts(int count)
+        {
+            var extracted = ExtractJWTToken(User);
+            if (extracted == null)
+                return Unauthorized("Invalid token.");
+
+            await SeedData.SeedStoreShiftsAsync(_context, count, extracted.Item1);
+            return Ok($"Generated {count} store shifts.");
         }
 
         private bool UserExists(long id)
