@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -224,6 +225,9 @@ namespace StoreAPI.Controllers
             if (_context.Users == null)
                 return NotFound();
 
+            if (pref < 0 || pref > 100)
+                return BadRequest("Preference must be between 0 and 100.");
+
             var user = await _context.Users
                 .Include(x => x.UserProfile)
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -244,6 +248,26 @@ namespace StoreAPI.Controllers
             userDTO.Password = null;
 
             return userDTO;
+        }
+
+        // PATCH: api/Users/0/PagePreference/5
+        [HttpPatch("PagePreferences/{pref}")]
+        [Role(AccessLevel.Admin)]
+        public async Task<ActionResult<UserDTO>> PatchPreferences(long pref)
+        {
+            if (_context.UserProfiles == null)
+                return NotFound();
+
+            if (pref < 0 || pref > 100)
+                return BadRequest("Preference must be between 0 and 100.");
+
+            long count = await _context.UserProfiles
+                .CountAsync();
+
+            var parameter = new SqlParameter("@PagePreference", pref);
+            await _context.Database.ExecuteSqlRawAsync("UPDATE [UserProfiles] SET [PagePreference] = @PagePreference", parameter);
+            
+            return Ok($"Updated {count} users with the new preference.");
         }
 
         // PATCH: api/Users/0/PagePreference/5

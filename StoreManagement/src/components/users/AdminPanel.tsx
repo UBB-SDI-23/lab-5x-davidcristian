@@ -10,23 +10,25 @@ import {
 } from "@mui/material";
 import { Container } from "@mui/system";
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
-import { getAuthToken } from "../../auth";
+import { getAccount, getAuthToken, updatePref } from "../../auth";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const AdminPanel = () => {
     const openSnackbar = useContext(SnackbarContext);
 
-    const [rolesText, setRolesText] = useState("");
-    const [employeesText, setEmployeesText] = useState("");
-    const [storesText, setStoresText] = useState("");
-    const [shiftsText, setShiftsText] = useState("");
+    const [preferenceText, setPreferenceText] = useState("");
+    const [rolesText, setRolesText] = useState("1");
+    const [employeesText, setEmployeesText] = useState("1");
+    const [storesText, setStoresText] = useState("1");
+    const [shiftsText, setShiftsText] = useState("1");
 
+    const [loadingPreference, setLoadingPreference] = useState(false);
     const [loadingRoles, setLoadingRoles] = useState(false);
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [loadingStores, setLoadingStores] = useState(false);
@@ -34,6 +36,13 @@ export const AdminPanel = () => {
 
     const anyLoading =
         loadingRoles || loadingEmployees || loadingStores || loadingShifts;
+
+    useEffect(() => {
+        const account = getAccount();
+        setPreferenceText(
+            account?.userProfile?.pagePreference?.toString() ?? ""
+        );
+    }, []);
 
     const deleteData = async (route: string) => {
         try {
@@ -101,6 +110,42 @@ export const AdminPanel = () => {
         }
     };
 
+    const savePreference = async (pref: number) => {
+        try {
+            await axios
+                .patch(
+                    `${BACKEND_API_URL}/users/pagepreferences/${pref}`,
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const data = response.data;
+                    openSnackbar("success", data);
+                    updatePref(getAccount()?.id, pref);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to update preference!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to update preference due to an unknown error!"
+            );
+        }
+    };
+
     async function executeOperation(
         type: string,
         operation: string,
@@ -109,7 +154,9 @@ export const AdminPanel = () => {
     ) {
         setLoading(true);
         try {
-            if (operation === "insert") {
+            if (operation === "preference") {
+                await savePreference(count);
+            } else if (operation === "insert") {
                 await seedData(type, count);
             } else {
                 await deleteData(type);
@@ -196,6 +243,59 @@ export const AdminPanel = () => {
                             >
                                 Users List
                             </Button>
+                        </div>
+
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                marginTop: 16,
+                                marginBottom: 16,
+                            }}
+                        >
+                            <p
+                                style={{
+                                    marginLeft: 16,
+                                    marginRight: 8,
+                                    userSelect: "none",
+                                }}
+                            >
+                                {`Page Preference: `}
+                            </p>
+                            <TextField
+                                value={preferenceText}
+                                type="text"
+                                inputProps={{
+                                    min: 1,
+                                    style: { textAlign: "center" },
+                                }}
+                                onChange={(event) =>
+                                    setPreferenceText(event.target.value)
+                                }
+                                onKeyPress={handleInputKeyPress}
+                                variant="outlined"
+                                size="small"
+                                style={{
+                                    width: 100,
+                                    marginRight: 16,
+                                }}
+                            />
+                            <Button
+                                variant="contained"
+                                onClick={() =>
+                                    parseData(
+                                        "pagepreferences",
+                                        "preference",
+                                        setLoadingPreference,
+                                        preferenceText
+                                    )
+                                }
+                            >
+                                Save
+                            </Button>
+                            {loadingPreference && (
+                                <CircularProgress sx={{ ml: 4 }} />
+                            )}
                         </div>
 
                         <div
