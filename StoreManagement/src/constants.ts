@@ -1,4 +1,4 @@
-const PROD_BACKEND_API_URL = "https://sdistoreapi.azurewebsites.net/api";
+const PROD_BACKEND_API_URL = "https://sdistoreapi.ddns.net/api";
 const DEV_BACKEND_API_URL = "http://localhost:5066/api";
 
 export const BACKEND_API_URL =
