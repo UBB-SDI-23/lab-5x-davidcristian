@@ -86,14 +86,16 @@ namespace StoreAPI.Models
 
         public static async Task SeedEmployeeRolesAsync(StoreContext context, int n, long? userId = null)
         {
+            var random = new Random();
+
             var userIds = await context.Users.Select(u => u.Id).ToListAsync();
-            var randomUserId = new Func<long>(() => userIds[new Random().Next(userIds.Count)]);
+            long RandomUserId() => userIds[random.Next(userIds.Count)];
 
             var faker = new Faker<StoreEmployeeRole>()
                 .RuleFor(er => er.Name, f => f.Name.JobTitle())
                 .RuleFor(er => er.Description, f => string.Join("\n", f.Lorem.Paragraphs(3)))
                 .RuleFor(er => er.RoleLevel, f => f.Random.Int(MIN_ROLE_LEVEL, MAX_ROLE_LEVEL))
-                .RuleFor(er => er.UserId, userId == null ? randomUserId() : userId);
+                .RuleFor(er => er.UserId, userId ?? RandomUserId());
 
             var employeeRoles = faker.Generate(n);
 
@@ -103,11 +105,13 @@ namespace StoreAPI.Models
 
         public static async Task SeedEmployeesAsync(StoreContext context, int n, long? userId = null)
         {
+            var random = new Random();
+
             var roleIds = await context.StoreEmployeeRoles.Select(er => er.Id).ToListAsync();
-            var randomRoleId = new Func<long>(() => roleIds[new Random().Next(roleIds.Count)]);
+            long RandomRoleId() => roleIds[random.Next(roleIds.Count)];
 
             var userIds = await context.Users.Select(u => u.Id).ToListAsync();
-            var randomUserId = new Func<long>(() => userIds[new Random().Next(userIds.Count)]);
+            long RandomUserId() => userIds[random.Next(userIds.Count)];
 
             var faker = new Faker<StoreEmployee>()
                 .RuleFor(e => e.FirstName, f => f.Name.FirstName())
@@ -116,8 +120,8 @@ namespace StoreAPI.Models
                 .RuleFor(e => e.EmploymentDate, f => f.Date.Between(DateTime.Now.AddYears(-10), DateTime.Now))
                 .RuleFor(e => e.TerminationDate, (f, e) => e.EmploymentDate.HasValue && f.Random.Bool(0.2f) ? f.Date.Between(e.EmploymentDate.Value, DateTime.Now) : null)
                 .RuleFor(e => e.Salary, f => Math.Round(f.Random.Double(30000, 120000), 2))
-                .RuleFor(e => e.StoreEmployeeRoleId, randomRoleId())
-                .RuleFor(e => e.UserId, userId == null ? randomUserId() : userId);
+                .RuleFor(e => e.StoreEmployeeRoleId, RandomRoleId())
+                .RuleFor(e => e.UserId, userId ?? RandomUserId());
 
             var employees = faker.Generate(n);
 
@@ -127,8 +131,10 @@ namespace StoreAPI.Models
 
         public static async Task SeedStoresAsync(StoreContext context, int n, long? userId = null)
         {
+            var random = new Random();
+
             var userIds = await context.Users.Select(u => u.Id).ToListAsync();
-            var randomUserId = new Func<long>(() => userIds[new Random().Next(userIds.Count)]);
+            long RandomUserId() => userIds[random.Next(userIds.Count)];
 
             var faker = new Faker<Store>()
                 .RuleFor(s => s.Name, f => $"{f.Company.CompanyName()} Store")
@@ -141,7 +147,7 @@ namespace StoreAPI.Models
                 .RuleFor(s => s.Country, f => f.Address.Country())
                 .RuleFor(s => s.OpenDate, f => f.Date.Between(DateTime.Now.AddYears(-20), DateTime.Now))
                 .RuleFor(s => s.CloseDate, (f, s) => s.OpenDate.HasValue && f.Random.Bool(0.1f) ? f.Date.Between(s.OpenDate.Value, DateTime.Now) : null)
-                .RuleFor(s => s.UserId, userId == null ? randomUserId() : userId);
+                .RuleFor(s => s.UserId, userId ?? RandomUserId());
 
             var stores = faker.Generate(n);
 
@@ -155,10 +161,28 @@ namespace StoreAPI.Models
             public long EmployeeId { get; set; }
         }
 
+        private class StoreEmployeePairComparer : IEqualityComparer<StoreEmployeePair>
+        {
+            public bool Equals(StoreEmployeePair? x, StoreEmployeePair? y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (x is null || y is null) return false;
+
+                return x.StoreId == y.StoreId && x.EmployeeId == y.EmployeeId;
+            }
+
+            public int GetHashCode(StoreEmployeePair obj)
+            {
+                return HashCode.Combine(obj.StoreId, obj.EmployeeId);
+            }
+        }
+
         public static async Task SeedStoreShiftsAsync(StoreContext context, int n, long? userId = null)
         {
+            var random = new Random();
+
             var userIds = await context.Users.Select(u => u.Id).ToListAsync();
-            var randomUserId = new Func<long>(() => userIds[new Random().Next(userIds.Count)]);
+            long RandomUserId() => userIds[random.Next(userIds.Count)];
 
             var storeIds = await context.Stores.Select(s => s.Id).ToListAsync();
             var employeeIds = await context.StoreEmployees.Select(e => e.Id).ToListAsync();
@@ -167,42 +191,35 @@ namespace StoreAPI.Models
             var faker = new Faker<StoreShift>()
                 .RuleFor(ss => ss.StartDate, f => f.Date.Between(DateTime.Now.AddYears(-5), DateTime.Now))
                 .RuleFor(ss => ss.EndDate, (f, ss) => ss.StartDate.HasValue ? f.Date.Between(ss.StartDate.Value, DateTime.Now) : null)
-                .RuleFor(ss => ss.UserId, userId == null ? randomUserId() : userId);
+                .RuleFor(ss => ss.UserId, userId ?? RandomUserId());
 
-            // store generated store and employee ID pairs in a list
-            // to prevent duplicate store shifts
-            var storeEmployeePairs = new List<StoreEmployeePair>();
+            var storeEmployeePairs = new HashSet<StoreEmployeePair>(new StoreEmployeePairComparer());
+            storeEmployeePairs.UnionWith(await context.StoreShifts.Select(ss => new StoreEmployeePair { StoreId = ss.StoreId, EmployeeId = ss.StoreEmployeeId }).ToListAsync());
 
-            // Add all existing store shifts to the pairs list
-            storeEmployeePairs.AddRange(await context.StoreShifts.Select(ss => new StoreEmployeePair { StoreId = ss.StoreId, EmployeeId = ss.StoreEmployeeId }).ToListAsync());
-
-            // define lambda for random pair of store and employee that checks for duplicates
-            var randomStoreEmployeePair = new Func<StoreEmployeePair>(() =>
+            StoreEmployeePair RandomStoreEmployeePair()
             {
-                var storeId = storeIds[new Random().Next(storeIds.Count)];
-                var employeeId = employeeIds[new Random().Next(employeeIds.Count)];
+                long storeId;
+                long employeeId;
+                var pair = new StoreEmployeePair();
 
-                long current = 0;
-                while (storeEmployeePairs.Any(p => p.StoreId == storeId && p.EmployeeId == employeeId))
+                do
                 {
-                    if (current++ > STACK_OVERFLOW_LOOPS)
-                        throw new Exception("Could not find a unique pair of store and employee");
+                    storeId = storeIds[random.Next(storeIds.Count)];
+                    employeeId = employeeIds[random.Next(employeeIds.Count)];
 
-                    storeId = storeIds[new Random().Next(storeIds.Count)];
-                    employeeId = employeeIds[new Random().Next(employeeIds.Count)];
-                }
-                var pair = new StoreEmployeePair { StoreId = storeId, EmployeeId = employeeId };
+                    pair.StoreId = storeId;
+                    pair.EmployeeId = employeeId;
+                } while (storeEmployeePairs.Contains(pair));
+
                 storeEmployeePairs.Add(pair);
                 return pair;
-            });
-
+            }
 
             for (int i = 0; i < n; i++)
             {
                 var storeShift = faker.Generate();
+                var pair = RandomStoreEmployeePair();
 
-                // get a unique pair using the lambda
-                var pair = randomStoreEmployeePair();
                 storeShift.StoreId = pair.StoreId;
                 storeShift.StoreEmployeeId = pair.EmployeeId;
 
@@ -217,8 +234,6 @@ namespace StoreAPI.Models
         {
             using (var context = new StoreContext(serviceProvider.GetRequiredService<DbContextOptions<StoreContext>>()))
             {
-                return;
-
                 var logger = serviceProvider.GetRequiredService<ILogger<SeedDataLogger>>();
                 logger.LogInformation("Seeding process started at {time}", DateTimeOffset.UtcNow);
 

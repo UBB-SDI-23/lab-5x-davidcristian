@@ -240,12 +240,15 @@ export const AllStores = () => {
                                         {store.storeShifts?.length}
                                     </TableCell>
                                     <TableCell align="left">
-                                        <Link
-                                            to={`/users/${store.user?.id}/details`}
-                                            title="View user details"
-                                        >
-                                            {store.user?.name}
-                                        </Link>
+                                        {store.user?.name && (
+                                            <Link
+                                                to={`/users/${store.user?.id}/details`}
+                                                title="View user details"
+                                            >
+                                                {store.user?.name}
+                                            </Link>
+                                        )}
+                                        {!store.user?.name && <p>N/A</p>}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box
@@ -308,7 +311,7 @@ export const AllStores = () => {
                     </Table>
                 </TableContainer>
             )}
-            {!loading && (
+            {!loading && stores.length > 0 && (
                 <div
                     style={{
                         display: "flex",

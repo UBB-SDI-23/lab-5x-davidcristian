@@ -260,7 +260,7 @@ export const AllUsers = () => {
                     </Table>
                 </TableContainer>
             )}
-            {!loading && (
+            {!loading && users.length > 0 && (
                 <div
                     style={{
                         display: "flex",

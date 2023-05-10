@@ -243,12 +243,15 @@ export const AllRoles = () => {
                                         {role.storeEmployees?.length}
                                     </TableCell>
                                     <TableCell align="left">
-                                        <Link
-                                            to={`/users/${role.user?.id}/details`}
-                                            title="View user details"
-                                        >
-                                            {role.user?.name}
-                                        </Link>
+                                        {role.user?.name && (
+                                            <Link
+                                                to={`/users/${role.user?.id}/details`}
+                                                title="View user details"
+                                            >
+                                                {role.user?.name}
+                                            </Link>
+                                        )}
+                                        {!role.user?.name && <p>N/A</p>}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box
@@ -307,7 +310,7 @@ export const AllRoles = () => {
                     </Table>
                 </TableContainer>
             )}
-            {!loading && (
+            {!loading && roles.length > 0 && (
                 <div
                     style={{
                         display: "flex",

@@ -61,9 +61,12 @@ namespace StoreAPI
                 connectionString = builder.Configuration.GetConnectionString("StoreDatabase");
 
             builder.Services.AddDbContext<StoreContext>(opt => opt
-                .UseSqlServer(connectionString)
+                .UseSqlServer(connectionString, options => options.CommandTimeout(60))
                 //.UseLazyLoadingProxies()
             );
+
+            // Add CORS service
+            builder.Services.AddCors();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -95,6 +98,12 @@ namespace StoreAPI
             {
                 ;
             }
+
+            // Configure CORS middleware
+            app.UseCors(policy => policy
+                .WithOrigins("https://sdistoreapi.netlify.app/")
+                .AllowAnyMethod()
+                .AllowAnyHeader());
 
             app.UseHttpsRedirection();
             app.UseAuthentication();

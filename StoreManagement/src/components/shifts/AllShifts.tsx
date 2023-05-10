@@ -244,12 +244,15 @@ export const AllShifts = () => {
                                         {formatDate(shift.endDate)}
                                     </TableCell>
                                     <TableCell align="left">
-                                        <Link
-                                            to={`/users/${shift.user?.id}/details`}
-                                            title="View user details"
-                                        >
-                                            {shift.user?.name}
-                                        </Link>
+                                        {shift.user?.name && (
+                                            <Link
+                                                to={`/users/${shift.user?.id}/details`}
+                                                title="View user details"
+                                            >
+                                                {shift.user?.name}
+                                            </Link>
+                                        )}
+                                        {!shift.user?.name && <p>N/A</p>}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box
@@ -312,7 +315,7 @@ export const AllShifts = () => {
                     </Table>
                 </TableContainer>
             )}
-            {!loading && (
+            {!loading && shifts.length > 0 && (
                 <div
                     style={{
                         display: "flex",

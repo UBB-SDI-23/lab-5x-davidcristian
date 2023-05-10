@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -250,7 +251,7 @@ namespace StoreAPI.Controllers
             return userDTO;
         }
 
-        // PATCH: api/Users/0/PagePreference/5
+        // PATCH: api/Users/0/PagePreferences/5
         [HttpPatch("PagePreferences/{pref}")]
         [Role(AccessLevel.Admin)]
         public async Task<ActionResult<UserDTO>> PatchPreferences(long pref)
@@ -448,52 +449,48 @@ namespace StoreAPI.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Users/StoreEmployeeRoles
-        [HttpDelete("StoreEmployeeRoles")]
+        // DELETE: api/Users/StoreEmployeeRoles/5
+        [HttpDelete("StoreEmployeeRoles/{count}")]
         [Role(AccessLevel.Admin)]
-        public async Task<IActionResult> DeleteRoles()
+        public async Task<IActionResult> DeleteRoles(int count)
         {
-            long count = await _context.StoreEmployeeRoles
-                .CountAsync();
-
-            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [StoreEmployeeRoles]");
-            return Ok($"Deleted {count} store employee roles.");
+            var parameter = new SqlParameter("@Count", count);
+            int affected = await _context.Database.ExecuteSqlRawAsync("DELETE TOP(@Count) FROM [StoreEmployeeRoles]", parameter);
+            
+            return Ok($"Deleted {affected} store employee roles.");
         }
 
-        // DELETE: api/Users/StoreEmployees
-        [HttpDelete("StoreEmployees")]
+        // DELETE: api/Users/StoreEmployees/5
+        [HttpDelete("StoreEmployees/{count}")]
         [Role(AccessLevel.Admin)]
-        public async Task<IActionResult> DeleteEmployees()
+        public async Task<IActionResult> DeleteEmployees(int count)
         {
-            long count = await _context.StoreEmployees
-                .CountAsync();
+            var parameter = new SqlParameter("@Count", count);
+            int affected = await _context.Database.ExecuteSqlRawAsync("DELETE TOP(@Count) FROM [StoreEmployees]", parameter);
 
-            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [StoreEmployees]");
-            return Ok($"Deleted {count} store employees.");
+            return Ok($"Deleted {affected} store employees.");
         }
 
-        // DELETE: api/Users/Stores
-        [HttpDelete("Stores")]
+        // DELETE: api/Users/Stores/5
+        [HttpDelete("Stores/{count}")]
         [Role(AccessLevel.Admin)]
-        public async Task<IActionResult> DeleteStores()
+        public async Task<IActionResult> DeleteStores(int count)
         {
-            long count = await _context.Stores
-                .CountAsync();
+            var parameter = new SqlParameter("@Count", count);
+            int affected = await _context.Database.ExecuteSqlRawAsync("DELETE TOP(@Count) FROM [Stores]", parameter);
 
-            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [Stores]");
-            return Ok($"Deleted {count} stores.");
+            return Ok($"Deleted {affected} stores.");
         }
 
-        // DELETE: api/Users/StoreShifts
-        [HttpDelete("StoreShifts")]
+        // DELETE: api/Users/StoreShifts/5
+        [HttpDelete("StoreShifts/{count}")]
         [Role(AccessLevel.Admin)]
-        public async Task<IActionResult> DeleteShifts()
+        public async Task<IActionResult> DeleteShifts(int count)
         {
-            long count = await _context.StoreShifts
-                .CountAsync();
+            var parameter = new SqlParameter("@Count", count);
+            int affected = await _context.Database.ExecuteSqlRawAsync("DELETE TOP(@Count) FROM [StoreShifts]", parameter);
 
-            await _context.Database.ExecuteSqlRawAsync("DELETE FROM [StoreShifts]");
-            return Ok($"Deleted {count} store shifts.");
+            return Ok($"Deleted {affected} store shifts.");
         }
 
         // POST: api/Users/StoreEmployeeRoles/5

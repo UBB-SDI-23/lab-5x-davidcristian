@@ -10,23 +10,28 @@ import {
 } from "@mui/material";
 import { Container } from "@mui/system";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { getAccount, getAuthToken, updatePref } from "../../auth";
 
+import { AccessLevel } from "../../models/User";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export const AdminPanel = () => {
     const openSnackbar = useContext(SnackbarContext);
 
-    const [preferenceText, setPreferenceText] = useState("");
-    const [rolesText, setRolesText] = useState("1");
-    const [employeesText, setEmployeesText] = useState("1");
-    const [storesText, setStoresText] = useState("1");
-    const [shiftsText, setShiftsText] = useState("1");
+    const [preferenceText, setPreferenceText] = useState(
+        getAccount()?.userProfile?.pagePreference?.toString() ?? ""
+    );
+    let defaultCount = 1_000;
+    const [rolesText, setRolesText] = useState(String(defaultCount));
+    const [employeesText, setEmployeesText] = useState(String(defaultCount));
+    const [storesText, setStoresText] = useState(String(defaultCount));
+    const [shiftsText, setShiftsText] = useState(String(defaultCount));
 
     const [loadingPreference, setLoadingPreference] = useState(false);
     const [loadingRoles, setLoadingRoles] = useState(false);
@@ -35,19 +40,16 @@ export const AdminPanel = () => {
     const [loadingShifts, setLoadingShifts] = useState(false);
 
     const anyLoading =
-        loadingRoles || loadingEmployees || loadingStores || loadingShifts;
+        loadingPreference ||
+        loadingRoles ||
+        loadingEmployees ||
+        loadingStores ||
+        loadingShifts;
 
-    useEffect(() => {
-        const account = getAccount();
-        setPreferenceText(
-            account?.userProfile?.pagePreference?.toString() ?? ""
-        );
-    }, []);
-
-    const deleteData = async (route: string) => {
+    const deleteData = async (route: string, count: number) => {
         try {
             await axios
-                .delete(`${BACKEND_API_URL}/users/${route}`, {
+                .delete(`${BACKEND_API_URL}/users/${route}/${count}`, {
                     headers: {
                         Authorization: `Bearer ${getAuthToken()}`,
                     },
@@ -159,10 +161,15 @@ export const AdminPanel = () => {
             } else if (operation === "insert") {
                 await seedData(type, count);
             } else {
-                await deleteData(type);
+                await deleteData(type, count);
             }
         } finally {
-            setLoading(false);
+            setTimeout(
+                () => {
+                    setLoading(false);
+                },
+                operation === "preference" ? 500 : 0
+            );
         }
     }
 
@@ -170,9 +177,9 @@ export const AdminPanel = () => {
         type: string,
         operation: string,
         setLoading: (loading: boolean) => void,
-        inputValue?: string
+        inputValue: string
     ) {
-        const value = parseInt(inputValue ?? "1", 10);
+        const value = parseInt(inputValue, 10);
 
         if (value > 0 && value <= 9999999) {
             executeOperation(type, operation, setLoading, value);
@@ -209,382 +216,336 @@ export const AdminPanel = () => {
 
     return (
         <Container>
-            <Card sx={{ p: 2 }}>
-                <CardContent>
-                    <Box display="flex" alignItems="flex-start">
-                        <IconButton
-                            disabled={anyLoading}
-                            component={Link}
-                            sx={{ mb: 2, mr: 3 }}
-                            to={`/`}
-                        >
-                            <ArrowBackIcon />
-                        </IconButton>
-                        <h1
-                            style={{
-                                flex: 1,
-                                textAlign: "center",
-                                marginLeft: -64,
-                                marginTop: -4,
-                            }}
-                        >
-                            Admin Panel
-                        </h1>
-                    </Box>
-
-                    <Box sx={{ ml: 1 }}>
-                        <div style={{ textAlign: "center" }}>
-                            <Button
+            {getAccount()?.accessLevel !== AccessLevel.Admin && (
+                <p style={{ marginLeft: 16 }}>
+                    You do not have enough privileges to view this page.
+                </p>
+            )}
+            {getAccount()?.accessLevel === AccessLevel.Admin && (
+                <Card sx={{ p: 2 }}>
+                    <CardContent>
+                        <Box display="flex" alignItems="flex-start">
+                            <IconButton
+                                disabled={anyLoading}
                                 component={Link}
-                                to={"/users"}
-                                variant="contained"
-                                color="primary"
-                                disabled={anyLoading}
+                                sx={{ mb: 2, mr: 3 }}
+                                to={`/`}
                             >
-                                Users List
-                            </Button>
-                        </div>
+                                <ArrowBackIcon />
+                            </IconButton>
+                            <h1
+                                style={{
+                                    flex: 1,
+                                    textAlign: "center",
+                                    marginLeft: -64,
+                                    marginTop: -4,
+                                }}
+                            >
+                                Admin Panel
+                            </h1>
+                        </Box>
 
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginTop: 16,
-                                marginBottom: 16,
-                            }}
-                        >
-                            <p
-                                style={{
-                                    marginLeft: 16,
-                                    marginRight: 8,
-                                    userSelect: "none",
-                                }}
-                            >
-                                {`Page Preference: `}
-                            </p>
-                            <TextField
-                                value={preferenceText}
-                                type="text"
-                                inputProps={{
-                                    min: 1,
-                                    style: { textAlign: "center" },
-                                }}
-                                onChange={(event) =>
-                                    setPreferenceText(event.target.value)
-                                }
-                                onKeyPress={handleInputKeyPress}
-                                variant="outlined"
-                                size="small"
-                                style={{
-                                    width: 100,
-                                    marginRight: 16,
-                                }}
-                            />
-                            <Button
-                                variant="contained"
-                                onClick={() =>
-                                    parseData(
-                                        "pagepreferences",
-                                        "preference",
-                                        setLoadingPreference,
-                                        preferenceText
-                                    )
-                                }
-                            >
-                                Save
-                            </Button>
-                            {loadingPreference && (
-                                <CircularProgress sx={{ ml: 4 }} />
-                            )}
-                        </div>
+                        <Box sx={{ ml: 1 }}>
+                            <div style={{ textAlign: "center" }}>
+                                <Button
+                                    component={Link}
+                                    to={"/users"}
+                                    variant="contained"
+                                    color="primary"
+                                    disabled={anyLoading}
+                                >
+                                    Users List
+                                </Button>
+                            </div>
 
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginTop: 16,
-                                marginBottom: 16,
-                            }}
-                        >
-                            <p
+                            <div
                                 style={{
-                                    marginLeft: 16,
-                                    marginRight: 8,
-                                    userSelect: "none",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    margin: 16,
                                 }}
                             >
-                                {`Roles: `}
-                            </p>
-                            <TextField
-                                disabled={anyLoading}
-                                value={rolesText}
-                                type="text"
-                                inputProps={{
-                                    min: 1,
-                                    style: { textAlign: "center" },
-                                }}
-                                onChange={(event) =>
-                                    setRolesText(event.target.value)
-                                }
-                                onKeyPress={handleInputKeyPress}
-                                variant="outlined"
-                                size="small"
-                                style={{
-                                    width: 100,
-                                    marginRight: 16,
-                                }}
-                            />
-                            <Button
-                                disabled={anyLoading}
-                                sx={{ mr: 2 }}
-                                variant="contained"
-                                onClick={() =>
-                                    parseData(
-                                        "storeemployeeroles",
-                                        "insert",
-                                        setLoadingRoles,
-                                        rolesText
-                                    )
-                                }
-                            >
-                                Insert
-                            </Button>
+                                <TextField
+                                    disabled={anyLoading}
+                                    value={preferenceText}
+                                    label="Page Preference"
+                                    InputLabelProps={{ shrink: true }}
+                                    type="text"
+                                    onChange={(event) =>
+                                        setPreferenceText(event.target.value)
+                                    }
+                                    onKeyPress={handleInputKeyPress}
+                                    variant="outlined"
+                                    size="small"
+                                    style={{
+                                        width: 160,
+                                        marginRight: 16,
+                                    }}
+                                />
+                                <Button
+                                    disabled={anyLoading}
+                                    variant="contained"
+                                    onClick={() =>
+                                        parseData(
+                                            "pagepreferences",
+                                            "preference",
+                                            setLoadingPreference,
+                                            preferenceText
+                                        )
+                                    }
+                                    sx={{ width: 244 }}
+                                >
+                                    Update All Users
+                                </Button>
+                                {loadingPreference && (
+                                    <CircularProgress sx={{ ml: 4 }} />
+                                )}
+                            </div>
 
-                            <Button
-                                disabled={anyLoading}
-                                variant="contained"
-                                color="error"
-                                onClick={() =>
-                                    parseData(
-                                        "storeemployeeroles",
-                                        "delete",
-                                        setLoadingRoles
-                                    )
-                                }
-                            >
-                                Bulk Delete
-                            </Button>
-                            {loadingRoles && (
-                                <CircularProgress sx={{ ml: 4 }} />
-                            )}
-                        </div>
-
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginTop: 16,
-                                marginBottom: 16,
-                            }}
-                        >
-                            <p
+                            <div
                                 style={{
-                                    marginLeft: 16,
-                                    marginRight: 8,
-                                    userSelect: "none",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    margin: 16,
                                 }}
                             >
-                                {`Employees: `}
-                            </p>
-                            <TextField
-                                disabled={anyLoading}
-                                value={employeesText}
-                                type="text"
-                                inputProps={{
-                                    min: 1,
-                                    style: { textAlign: "center" },
-                                }}
-                                onChange={(event) =>
-                                    setEmployeesText(event.target.value)
-                                }
-                                onKeyPress={handleInputKeyPress}
-                                variant="outlined"
-                                size="small"
-                                style={{
-                                    width: 100,
-                                    marginRight: 16,
-                                }}
-                            />
-                            <Button
-                                disabled={anyLoading}
-                                sx={{ mr: 2 }}
-                                variant="contained"
-                                onClick={() =>
-                                    parseData(
-                                        "storeemployees",
-                                        "insert",
-                                        setLoadingEmployees,
-                                        employeesText
-                                    )
-                                }
-                            >
-                                Insert
-                            </Button>
+                                <TextField
+                                    disabled={anyLoading}
+                                    value={rolesText}
+                                    label="Roles"
+                                    InputLabelProps={{ shrink: true }}
+                                    type="text"
+                                    onChange={(event) =>
+                                        setRolesText(event.target.value)
+                                    }
+                                    onKeyPress={handleInputKeyPress}
+                                    variant="outlined"
+                                    size="small"
+                                    style={{
+                                        width: 160,
+                                        marginRight: 16,
+                                    }}
+                                />
+                                <Button
+                                    disabled={anyLoading}
+                                    sx={{ mr: 2 }}
+                                    variant="contained"
+                                    onClick={() =>
+                                        parseData(
+                                            "storeemployeeroles",
+                                            "insert",
+                                            setLoadingRoles,
+                                            rolesText
+                                        )
+                                    }
+                                >
+                                    Generate
+                                </Button>
 
-                            <Button
-                                disabled={anyLoading}
-                                variant="contained"
-                                color="error"
-                                onClick={() =>
-                                    parseData(
-                                        "storeemployees",
-                                        "delete",
-                                        setLoadingEmployees
-                                    )
-                                }
-                            >
-                                Bulk Delete
-                            </Button>
-                            {loadingEmployees && (
-                                <CircularProgress sx={{ ml: 4 }} />
-                            )}
-                        </div>
+                                <Button
+                                    disabled={anyLoading}
+                                    variant="contained"
+                                    color="error"
+                                    onClick={() =>
+                                        parseData(
+                                            "storeemployeeroles",
+                                            "delete",
+                                            setLoadingRoles,
+                                            rolesText
+                                        )
+                                    }
+                                >
+                                    Bulk Delete
+                                </Button>
+                                {loadingRoles && (
+                                    <CircularProgress sx={{ ml: 4 }} />
+                                )}
+                            </div>
 
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginTop: 16,
-                                marginBottom: 16,
-                            }}
-                        >
-                            <p
+                            <div
                                 style={{
-                                    marginLeft: 16,
-                                    marginRight: 8,
-                                    userSelect: "none",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    margin: 16,
                                 }}
                             >
-                                {`Stores: `}
-                            </p>
-                            <TextField
-                                disabled={anyLoading}
-                                value={storesText}
-                                type="text"
-                                inputProps={{
-                                    min: 1,
-                                    style: { textAlign: "center" },
-                                }}
-                                onChange={(event) =>
-                                    setStoresText(event.target.value)
-                                }
-                                onKeyPress={handleInputKeyPress}
-                                variant="outlined"
-                                size="small"
-                                style={{
-                                    width: 100,
-                                    marginRight: 16,
-                                }}
-                            />
-                            <Button
-                                disabled={anyLoading}
-                                sx={{ mr: 2 }}
-                                variant="contained"
-                                onClick={() =>
-                                    parseData(
-                                        "stores",
-                                        "insert",
-                                        setLoadingStores,
-                                        storesText
-                                    )
-                                }
-                            >
-                                Insert
-                            </Button>
+                                <TextField
+                                    disabled={anyLoading}
+                                    value={employeesText}
+                                    label="Employees"
+                                    InputLabelProps={{ shrink: true }}
+                                    type="text"
+                                    onChange={(event) =>
+                                        setEmployeesText(event.target.value)
+                                    }
+                                    onKeyPress={handleInputKeyPress}
+                                    variant="outlined"
+                                    size="small"
+                                    style={{
+                                        width: 160,
+                                        marginRight: 16,
+                                    }}
+                                />
+                                <Button
+                                    disabled={anyLoading}
+                                    sx={{ mr: 2 }}
+                                    variant="contained"
+                                    onClick={() =>
+                                        parseData(
+                                            "storeemployees",
+                                            "insert",
+                                            setLoadingEmployees,
+                                            employeesText
+                                        )
+                                    }
+                                >
+                                    Generate
+                                </Button>
 
-                            <Button
-                                disabled={anyLoading}
-                                variant="contained"
-                                color="error"
-                                onClick={() =>
-                                    parseData(
-                                        "stores",
-                                        "delete",
-                                        setLoadingStores
-                                    )
-                                }
-                            >
-                                Bulk Delete
-                            </Button>
-                            {loadingStores && (
-                                <CircularProgress sx={{ ml: 4 }} />
-                            )}
-                        </div>
+                                <Button
+                                    disabled={anyLoading}
+                                    variant="contained"
+                                    color="error"
+                                    onClick={() =>
+                                        parseData(
+                                            "storeemployees",
+                                            "delete",
+                                            setLoadingEmployees,
+                                            employeesText
+                                        )
+                                    }
+                                >
+                                    Bulk Delete
+                                </Button>
+                                {loadingEmployees && (
+                                    <CircularProgress sx={{ ml: 4 }} />
+                                )}
+                            </div>
 
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginTop: 16,
-                                marginBottom: 16,
-                            }}
-                        >
-                            <p
+                            <div
                                 style={{
-                                    marginLeft: 16,
-                                    marginRight: 8,
-                                    userSelect: "none",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    margin: 16,
                                 }}
                             >
-                                {`Shifts: `}
-                            </p>
-                            <TextField
-                                disabled={anyLoading}
-                                value={shiftsText}
-                                type="text"
-                                inputProps={{
-                                    min: 1,
-                                    style: { textAlign: "center" },
-                                }}
-                                onChange={(event) =>
-                                    setShiftsText(event.target.value)
-                                }
-                                onKeyPress={handleInputKeyPress}
-                                variant="outlined"
-                                size="small"
-                                style={{
-                                    width: 100,
-                                    marginRight: 16,
-                                }}
-                            />
-                            <Button
-                                disabled={anyLoading}
-                                sx={{ mr: 2 }}
-                                variant="contained"
-                                onClick={() =>
-                                    parseData(
-                                        "storeshifts",
-                                        "insert",
-                                        setLoadingShifts,
-                                        shiftsText
-                                    )
-                                }
-                            >
-                                Insert
-                            </Button>
+                                <TextField
+                                    disabled={anyLoading}
+                                    value={storesText}
+                                    label="Stores"
+                                    InputLabelProps={{ shrink: true }}
+                                    type="text"
+                                    onChange={(event) =>
+                                        setStoresText(event.target.value)
+                                    }
+                                    onKeyPress={handleInputKeyPress}
+                                    variant="outlined"
+                                    size="small"
+                                    style={{
+                                        width: 160,
+                                        marginRight: 16,
+                                    }}
+                                />
+                                <Button
+                                    disabled={anyLoading}
+                                    sx={{ mr: 2 }}
+                                    variant="contained"
+                                    onClick={() =>
+                                        parseData(
+                                            "stores",
+                                            "insert",
+                                            setLoadingStores,
+                                            storesText
+                                        )
+                                    }
+                                >
+                                    Generate
+                                </Button>
 
-                            <Button
-                                disabled={anyLoading}
-                                variant="contained"
-                                color="error"
-                                onClick={() =>
-                                    parseData(
-                                        "storeshifts",
-                                        "delete",
-                                        setLoadingShifts
-                                    )
-                                }
+                                <Button
+                                    disabled={anyLoading}
+                                    variant="contained"
+                                    color="error"
+                                    onClick={() =>
+                                        parseData(
+                                            "stores",
+                                            "delete",
+                                            setLoadingStores,
+                                            storesText
+                                        )
+                                    }
+                                >
+                                    Bulk Delete
+                                </Button>
+                                {loadingStores && (
+                                    <CircularProgress sx={{ ml: 4 }} />
+                                )}
+                            </div>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    margin: 16,
+                                }}
                             >
-                                Bulk Delete
-                            </Button>
-                            {loadingShifts && (
-                                <CircularProgress sx={{ ml: 4 }} />
-                            )}
-                        </div>
-                    </Box>
-                </CardContent>
-                <CardActions></CardActions>
-            </Card>
+                                <TextField
+                                    disabled={anyLoading}
+                                    value={shiftsText}
+                                    label="Shifts"
+                                    InputLabelProps={{ shrink: true }}
+                                    type="text"
+                                    onChange={(event) =>
+                                        setShiftsText(event.target.value)
+                                    }
+                                    onKeyPress={handleInputKeyPress}
+                                    variant="outlined"
+                                    size="small"
+                                    style={{
+                                        width: 160,
+                                        marginRight: 16,
+                                    }}
+                                />
+                                <Button
+                                    disabled={anyLoading}
+                                    sx={{ mr: 2 }}
+                                    variant="contained"
+                                    onClick={() =>
+                                        parseData(
+                                            "storeshifts",
+                                            "insert",
+                                            setLoadingShifts,
+                                            shiftsText
+                                        )
+                                    }
+                                >
+                                    Generate
+                                </Button>
+
+                                <Button
+                                    disabled={anyLoading}
+                                    variant="contained"
+                                    color="error"
+                                    onClick={() =>
+                                        parseData(
+                                            "storeshifts",
+                                            "delete",
+                                            setLoadingShifts,
+                                            shiftsText
+                                        )
+                                    }
+                                >
+                                    Bulk Delete
+                                </Button>
+                                {loadingShifts && (
+                                    <CircularProgress sx={{ ml: 4 }} />
+                                )}
+                            </div>
+                        </Box>
+                    </CardContent>
+                    <CardActions></CardActions>
+                </Card>
+            )}
         </Container>
     );
 };
