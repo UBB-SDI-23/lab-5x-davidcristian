@@ -16,6 +16,17 @@ namespace StoreAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(
+                    policy =>
+                    {
+                        policy.WithOrigins("https://sdistoreapi.netlify.app")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+            });
 
             // Add services to the container.
             //builder.Services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
@@ -99,14 +110,10 @@ namespace StoreAPI
                 ;
             }
 
-            // Configure CORS middleware
-            app.UseCors(policy => policy
-                .WithOrigins("https://sdistoreapi.netlify.app/")
-                .AllowAnyMethod()
-                .AllowAnyHeader());
-
             app.UseHttpsRedirection();
             app.UseAuthentication();
+
+            app.UseCors();
             app.UseAuthorization();
 
             app.MapControllers();
