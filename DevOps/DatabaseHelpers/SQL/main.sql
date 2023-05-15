@@ -14,6 +14,9 @@ ALTER TABLE Stores DROP CONSTRAINT IF EXISTS FK_Stores_Users_UserId;
 ALTER TABLE StoreEmployees DROP CONSTRAINT IF EXISTS FK_StoreEmployees_Users_UserId;
 ALTER TABLE StoreEmployeeRoles DROP CONSTRAINT IF EXISTS FK_StoreEmployeeRoles_Users_UserId;
 
+DROP INDEX IF EXISTS IX_StoreShifts_StoreId ON StoreShifts;
+DROP INDEX IF EXISTS IX_StoreShifts_StoreEmployeeId ON StoreShifts;
+
 DROP INDEX IF EXISTS IX_Users_Name ON Users;
 DROP INDEX IF EXISTS IX_ConfirmationCodes_Code ON ConfirmationCodes;
 GO
@@ -85,6 +88,9 @@ ADD CONSTRAINT FK_Stores_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id)
 
 ALTER TABLE StoreShifts
 ADD CONSTRAINT FK_StoreShifts_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE SET NULL;
+
+CREATE INDEX IX_StoreShifts_StoreId ON StoreShifts (StoreId);
+CREATE INDEX IX_StoreShifts_StoreEmployeeId ON StoreShifts (StoreEmployeeId);
 
 CREATE UNIQUE INDEX IX_Users_Name ON Users (Name);
 CREATE UNIQUE INDEX IX_ConfirmationCodes_Code ON ConfirmationCodes (Code);

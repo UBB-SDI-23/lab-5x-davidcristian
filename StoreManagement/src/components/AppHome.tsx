@@ -7,9 +7,17 @@ export const AppHome = () => {
             <CssBaseline />
 
             <Container maxWidth="xl">
-                <Typography variant="h1" component="h1" gutterBottom>
-                    Welcome to the (development) app! Use the menu above to
-                    navigate.
+                <Typography
+                    variant="h1"
+                    component="h1"
+                    gutterBottom
+                    sx={{
+                        textAlign: "center",
+                        fontSize: "4rem",
+                        userSelect: "none",
+                    }}
+                >
+                    Welcome
                 </Typography>
             </Container>
         </React.Fragment>

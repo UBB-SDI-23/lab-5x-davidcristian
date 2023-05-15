@@ -15,9 +15,12 @@ export const logOut = () => {
 };
 
 export const isAuthorized = (userId: number | undefined) => {
-    return account !== null && account.accessLevel !== undefined
-        && (account.accessLevel > AccessLevel.Regular || (account.id === userId))
-}
+    return (
+        account !== null &&
+        account.accessLevel !== undefined &&
+        (account.accessLevel > AccessLevel.Regular || account.id === userId)
+    );
+};
 
 export const setAuthToken = (newToken: string | null) => {
     token = newToken;

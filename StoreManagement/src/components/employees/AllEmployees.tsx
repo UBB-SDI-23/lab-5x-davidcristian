@@ -12,14 +12,22 @@ import {
     Tooltip,
     Button,
     Box,
+    useTheme,
+    useMediaQuery,
+    Grid,
+    Card,
+    CardContent,
+    Typography,
+    CardActions,
 } from "@mui/material";
 
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BACKEND_API_URL, formatDate } from "../../constants";
+import { BACKEND_API_URL } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { isAuthorized, getAccount, getAuthToken } from "../../auth";
+import Paginator from "../Paginator";
 import { Employee, Gender } from "../../models/Employee";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -27,7 +35,6 @@ import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
-// TODO: Fix pagination when there are no entities
 export const AllEmployees = () => {
     const openSnackbar = useContext(SnackbarContext);
     const [loading, setLoading] = useState(true);
@@ -35,62 +42,23 @@ export const AllEmployees = () => {
 
     const [pageSize] = useState(getAccount()?.userProfile?.pagePreference ?? 5);
     const [pageIndex, setPageIndex] = useState(0);
-    const [totalPages, setTotalPages] = useState(999999);
 
-    function handlePageClick(pageNumber: number) {
-        setPageIndex(pageNumber - 1);
-    }
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+    const isLargeScreen = useMediaQuery(theme.breakpoints.down("lg"));
 
-    const displayedPages = 9;
-
-    let startPage = pageIndex - Math.floor((displayedPages - 3) / 2) + 1;
-    let endPage = startPage + displayedPages - 3;
-
-    if (startPage <= 2) {
-        startPage = 1;
-        endPage = displayedPages - 1;
-    } else if (endPage >= totalPages - 1) {
-        startPage = totalPages - displayedPages + 2;
-        endPage = totalPages;
-    }
-
-    const fetchPageCount = async () => {
-        try {
-            await axios
-                .get<number>(
-                    `${BACKEND_API_URL}/storeemployees/count/${pageSize}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${getAuthToken()}`,
-                        },
-                    }
-                )
-                .then((response) => {
-                    const data = response.data;
-                    setTotalPages(data);
-                })
-                .catch((reason: AxiosError) => {
-                    console.log(reason.message);
-                    openSnackbar(
-                        "error",
-                        "Failed to fetch page count!\n" +
-                            (String(reason.response?.data).length > 255
-                                ? reason.message
-                                : reason.response?.data)
-                    );
-                });
-        } catch (error) {
-            console.log(error);
-            openSnackbar(
-                "error",
-                "Failed to fetch page count due to an unknown error!"
-            );
-        }
-    };
-
-    useEffect(() => {
-        fetchPageCount();
-    }, [pageSize]);
+    const headers = [
+        { text: "#", propName: "", hide: false },
+        { text: "First Name", propName: "firstName", hide: false },
+        { text: "Last Name", propName: "lastName", hide: false },
+        { text: "Gender", propName: "gender", hide: isLargeScreen },
+        { text: "Salary", propName: "salary", hide: isLargeScreen },
+        { text: "Role", propName: "", hide: false },
+        { text: "# of Shifts", propName: "", hide: false },
+        { text: "User", propName: "", hide: false },
+        { text: "Operations", propName: "", hide: false },
+    ];
 
     const fetchEmployees = async () => {
         setLoading(true);
@@ -171,7 +139,7 @@ export const AllEmployees = () => {
     }, [sorting]);
 
     return (
-        <Container>
+        <Container data-testid="test-all-employees-container">
             <h1
                 style={{
                     paddingTop: 26,
@@ -199,167 +167,152 @@ export const AllEmployees = () => {
             {!loading && employees.length === 0 && (
                 <p style={{ marginLeft: 16 }}>No employees found.</p>
             )}
-            {!loading && employees.length > 0 && (
-                <TableContainer component={Paper}>
-                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell style={{ userSelect: "none" }}>
-                                    #
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        cursor: "pointer",
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "firstName",
-                                            !sorting.ascending
-                                        )
-                                    }
-                                >
-                                    First Name
-                                    {sorting.key === "firstName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        cursor: "pointer",
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                    onClick={() =>
-                                        applySorting(
-                                            "lastName",
-                                            !sorting.ascending
-                                        )
-                                    }
-                                >
-                                    Last Name
-                                    {sorting.key === "lastName" &&
-                                        (sorting.ascending ? " ↑" : " ↓")}
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Gender
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Employment Date
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Termination Date
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Salary
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Role
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    # of Shifts
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    User
-                                </TableCell>
-                                <TableCell
-                                    align="center"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Operations
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {employees.map((employee, index) => (
-                                <TableRow key={employee.id}>
-                                    <TableCell component="th" scope="row">
-                                        {pageIndex * pageSize + index + 1}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.firstName}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.lastName}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {Gender[employee.gender]}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {formatDate(employee.employmentDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {formatDate(employee.terminationDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.salary}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.storeEmployeeRole?.name ??
-                                            "Unknown"}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.storeShifts?.length}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {employee.user?.name && (
+            {!loading &&
+                employees.length > 0 &&
+                (isMediumScreen ? (
+                    <Grid container spacing={3}>
+                        {employees.map((employee, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={employee.id}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography
+                                            variant="h6"
+                                            component="div"
+                                        >
+                                            {employee.firstName}{" "}
+                                            {employee.lastName}
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            {"Role: "}
+                                            {employee.storeEmployeeRole?.name ??
+                                                "Unknown"}
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            Salary: {employee.salary}
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            # of Shifts:{" "}
+                                            {employee.storeShifts?.length}
+                                        </Typography>
+                                    </CardContent>
+                                    <CardActions>
+                                        <IconButton
+                                            component={Link}
+                                            to={`/employees/${employee.id}/details`}
+                                        >
+                                            <Tooltip
+                                                title="View employee details"
+                                                arrow
+                                            >
+                                                <ReadMoreIcon color="primary" />
+                                            </Tooltip>
+                                        </IconButton>
+                                        <IconButton
+                                            component={Link}
+                                            sx={{ ml: 1, mr: 1 }}
+                                            to={`/employees/${employee.id}/edit`}
+                                            disabled={
+                                                !isAuthorized(employee.user?.id)
+                                            }
+                                        >
+                                            <Tooltip
+                                                title="Edit employee"
+                                                arrow
+                                            >
+                                                <EditIcon />
+                                            </Tooltip>
+                                        </IconButton>
+                                        <IconButton
+                                            component={Link}
+                                            to={`/employees/${employee.id}/delete`}
+                                            disabled={
+                                                !isAuthorized(employee.user?.id)
+                                            }
+                                            sx={{
+                                                color: "red",
+                                            }}
+                                        >
+                                            <Tooltip
+                                                title="Delete employee"
+                                                arrow
+                                            >
+                                                <DeleteForeverIcon />
+                                            </Tooltip>
+                                        </IconButton>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                ) : (
+                    <TableContainer component={Paper}>
+                        <Table sx={{ minWidth: 0 }} aria-label="simple table">
+                            <TableHead>
+                                <TableRow>
+                                    {headers.map((header, i) => {
+                                        if (header.hide) {
+                                            return null;
+                                        }
+                                        return (
+                                            <TableCell
+                                                key={i}
+                                                style={{
+                                                    cursor: header.propName
+                                                        ? "pointer"
+                                                        : "default",
+                                                    whiteSpace: header.propName
+                                                        ? "nowrap"
+                                                        : "normal",
+                                                    userSelect: "none",
+                                                }}
+                                                align={
+                                                    header.text === "Operations"
+                                                        ? "center"
+                                                        : "left"
+                                                }
+                                                onClick={() =>
+                                                    header.propName &&
+                                                    applySorting(
+                                                        header.propName,
+                                                        sorting.key ===
+                                                            header.propName
+                                                            ? !sorting.ascending
+                                                            : true
+                                                    )
+                                                }
+                                            >
+                                                {header.text}
+                                                {sorting.key ===
+                                                    header.propName &&
+                                                    (sorting.ascending
+                                                        ? " ↑"
+                                                        : " ↓")}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {employees.map((employee, index) => {
+                                    const employeeData = [
+                                        pageIndex * pageSize + index + 1,
+                                        employee.firstName,
+                                        employee.lastName,
+                                        Gender[employee.gender],
+                                        employee.salary,
+                                        employee.storeEmployeeRole?.name ??
+                                            "Unknown",
+                                        employee.storeShifts?.length,
+                                        employee.user?.name ? (
                                             <Link
                                                 to={`/users/${employee.user?.id}/details`}
                                                 title="View user details"
                                             >
                                                 {employee.user?.name}
                                             </Link>
-                                        )}
-                                        {!employee.user?.name && <p>N/A</p>}
-                                    </TableCell>
-                                    <TableCell align="center">
+                                        ) : (
+                                            <p>N/A</p>
+                                        ),
                                         <Box
                                             display="flex"
                                             alignItems="flex-start"
@@ -401,9 +354,7 @@ export const AllEmployees = () => {
                                                         employee.user?.id
                                                     )
                                                 }
-                                                sx={{
-                                                    color: "red",
-                                                }}
+                                                sx={{ color: "red" }}
                                             >
                                                 <Tooltip
                                                     title="Delete employee"
@@ -412,100 +363,43 @@ export const AllEmployees = () => {
                                                     <DeleteForeverIcon />
                                                 </Tooltip>
                                             </IconButton>
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
+                                        </Box>,
+                                    ];
+                                    return (
+                                        <TableRow key={employee.id}>
+                                            {employeeData.map((data, i) => {
+                                                const header = headers[i];
+                                                if (header.hide) {
+                                                    return null;
+                                                }
+                                                return (
+                                                    <TableCell
+                                                        key={i}
+                                                        align={
+                                                            header.text ===
+                                                            "Operations"
+                                                                ? "center"
+                                                                : "left"
+                                                        }
+                                                    >
+                                                        {data}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                ))}
             {!loading && employees.length > 0 && (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginTop: 16,
-                    }}
-                >
-                    <Button
-                        variant="contained"
-                        onClick={() =>
-                            setPageIndex((prevPageIndex) =>
-                                Math.max(prevPageIndex - 1, 0)
-                            )
-                        }
-                        disabled={pageIndex === 0}
-                    >
-                        &lt;
-                    </Button>
-                    {startPage > 1 && (
-                        <>
-                            <Button
-                                variant={
-                                    pageIndex === 0 ? "contained" : "outlined"
-                                }
-                                onClick={() => handlePageClick(1)}
-                                style={{
-                                    marginLeft: 8,
-                                    marginRight: 8,
-                                }}
-                            >
-                                1
-                            </Button>
-                            <span>...</span>
-                        </>
-                    )}
-                    {Array.from(
-                        { length: endPage - startPage + 1 },
-                        (_, i) => i + startPage
-                    ).map((number) => (
-                        <Button
-                            key={number}
-                            variant={
-                                pageIndex === number - 1
-                                    ? "contained"
-                                    : "outlined"
-                            }
-                            onClick={() => handlePageClick(number)}
-                            style={{
-                                marginLeft: 8,
-                                marginRight: 8,
-                            }}
-                        >
-                            {number}
-                        </Button>
-                    ))}
-                    {endPage < totalPages && (
-                        <>
-                            <span>...</span>
-                            <Button
-                                variant={
-                                    pageIndex === totalPages - 1
-                                        ? "contained"
-                                        : "outlined"
-                                }
-                                onClick={() => handlePageClick(totalPages)}
-                                style={{
-                                    marginLeft: 8,
-                                    marginRight: 8,
-                                }}
-                            >
-                                {totalPages}
-                            </Button>
-                        </>
-                    )}
-                    <Button
-                        variant="contained"
-                        onClick={() =>
-                            setPageIndex((prevPageIndex) => prevPageIndex + 1)
-                        }
-                        disabled={pageIndex + 1 >= totalPages}
-                    >
-                        &gt;
-                    </Button>
-                </div>
+                <Paginator
+                    route="storeemployees"
+                    pageSize={pageSize}
+                    pageIndex={pageIndex}
+                    setPageIndex={setPageIndex}
+                />
             )}
         </Container>
     );

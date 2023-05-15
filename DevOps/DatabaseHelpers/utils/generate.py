@@ -70,7 +70,7 @@ def create_user_profiles_csv() -> None:
             user_id = i
             writer.writerow(
                 [
-                    i,
+                    # i,
                     user_id,
                     bio,
                     location,

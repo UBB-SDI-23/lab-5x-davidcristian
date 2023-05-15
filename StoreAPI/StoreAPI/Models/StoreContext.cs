@@ -11,7 +11,7 @@ namespace StoreAPI.Models
             // EnsureDeleted to skip migrations
             // delete to keep data between runs
             //Database.EnsureDeleted();
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -44,6 +44,9 @@ namespace StoreAPI.Models
                 .HasForeignKey<UserProfile>(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<UserProfile>()
+                .HasKey(p => p.UserId);
+
             // Define one-to-many relationships
             modelBuilder.Entity<StoreEmployee>()
                 .HasOne(e => e.StoreEmployeeRole)
@@ -54,6 +57,10 @@ namespace StoreAPI.Models
             // Define many-to-many relationships
             modelBuilder.Entity<StoreShift>()
                 .HasKey(ss => new { ss.StoreId, ss.StoreEmployeeId });
+            modelBuilder.Entity<StoreShift>()
+                .HasIndex(ss => ss.StoreId);
+            modelBuilder.Entity<StoreShift>()
+                .HasIndex(ss => ss.StoreEmployeeId);
 
             modelBuilder.Entity<StoreShift>()
                 .HasOne(ss => ss.Store)

@@ -67,10 +67,7 @@ namespace StoreAPI
                 };
             });
 
-            var connectionString = builder.Configuration.GetConnectionString("LocalStoreDatabase");
-            if (string.IsNullOrEmpty(connectionString))
-                connectionString = builder.Configuration.GetConnectionString("StoreDatabase");
-
+            var connectionString = builder.Configuration.GetConnectionString("StoreDatabase");
             builder.Services.AddDbContext<StoreContext>(opt => opt
                 .UseSqlServer(connectionString, options => options.CommandTimeout(60))
                 //.UseLazyLoadingProxies()
@@ -95,7 +92,7 @@ namespace StoreAPI
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetService<StoreContext>();
-                //context.Database.Migrate();
+                context!.Database.Migrate();
                 SeedData.InitializeAsync(scope.ServiceProvider).Wait();
             }
 

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using StoreAPI.Models;
 using StoreAPI.Validators;
 using System.Security.Claims;
+using System.Drawing.Printing;
 
 namespace StoreAPI.Controllers
 {
@@ -230,19 +231,43 @@ namespace StoreAPI.Controllers
             return NoContent();
         }
 
-        // FILTER: api/StoreEmployees/Filter?minSalary=3000
-        [HttpGet("Filter")]
+        // FILTER: api/StoreEmployees/filter/0/10?minSalary=3000
+        [HttpGet("filter/{page}/{pageSize}")]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<StoreEmployee>>> FilterStoreEmployees(double minSalary)
+        public async Task<ActionResult<IEnumerable<StoreEmployee>>> FilterStoreEmployees(double minSalary, int page = 0, int pageSize = 10)
         {
             if (_context.StoreEmployees == null)
                 return NotFound();
 
-            return await _context.StoreEmployees
-                .Include(x => x.StoreEmployeeRole)
+            var employees = await _context.StoreEmployees
                 .Where(x => x.Salary >= minSalary)
-                .Take(100)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Include(x => x.StoreEmployeeRole)
+                .AsNoTracking()
                 .ToListAsync();
+
+            if (!employees.Any())
+                return NotFound();
+
+            return Ok(employees);
+        }
+
+        // GET: api/StoreEmployees/filter/count/10?minSalary=3000
+        [HttpGet("filter/count/{pageSize}")]
+        [AllowAnonymous]
+        public async Task<int> SalaryFilterNumberOfPages(double minSalary, int pageSize = 10)
+        {
+            int total = await _context.StoreEmployees
+                .Where(x => x.Salary >= minSalary)
+                .AsNoTracking()
+                .CountAsync();
+
+            int totalPages = total / pageSize;
+            if (total % pageSize > 0)
+                totalPages++;
+
+            return totalPages;
         }
 
         private bool StoreEmployeeExists(long id)

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Moq;
 using Moq.EntityFrameworkCore;
 using StoreAPI.Controllers;
@@ -9,12 +11,36 @@ namespace StoreAPITest
     [TestFixture]
     public class GetStoresByEmployeeCount
     {
-        private Mock<StoreContext> _contextMock;
+        // Using an in-memory database is technically
+        // considered integration testing because we're
+        // testing the interaction between the code and the
+        // database, even if the database is in-memory.
+
+        // Unit tests are intended to test a "unit" of code in isolation,
+        // which means mocking or stubbing all dependencies. However, in
+        // the case of Entity Framework and other ORMs, it's often more
+        // practical to use an in-memory database for testing. This is
+        // because ORMs typically involve complex interactions with a
+        // database, and mocking these interactions can be difficult
+        // and lead to tests that don't accurately represent how the
+        // code will behave in production.
+
+        private StoreContext _context;
 
         [SetUp]
         public void Setup()
         {
-            _contextMock = new Mock<StoreContext>();
+            var options = new DbContextOptionsBuilder<StoreContext>()
+                .UseInMemoryDatabase(databaseName: "HeadcountTestDatabase")
+                .Options;
+
+            _context = new StoreContext(options);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _context.Database.EnsureDeleted();
         }
 
         [Test]
@@ -139,14 +165,20 @@ namespace StoreAPITest
                 },
             };
 
-            _contextMock.Setup(c => c.StoreEmployeeRoles).ReturnsDbSet(roles);
-            _contextMock.Setup(c => c.StoreEmployees).ReturnsDbSet(employees);
-            _contextMock.Setup(c => c.Stores).ReturnsDbSet(stores);
-            _contextMock.Setup(c => c.StoreShifts).ReturnsDbSet(storeShifts);
+            _context.StoreEmployeeRoles.AddRange(roles);
+            _context.StoreEmployees.AddRange(employees);
+            _context.Stores.AddRange(stores);
+            _context.StoreShifts.AddRange(storeShifts);
+            await _context.SaveChangesAsync();
 
-            var controller = new StoresController(_contextMock.Object);
+            var controller = new StoresController(_context);
+            var actionResult = await controller.GetStoresByEmployeeCount();
 
-            var shifts = await controller.TestGetStoresByEmployeeCount();
+            var okResult = actionResult.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+
+            var shifts = okResult.Value as List<StoreHeadcountReportDTO>;
+            Assert.That(shifts, Is.Not.Null);
 
             Assert.That(shifts.Count, Is.EqualTo(3));
             Assert.That(shifts[0].Id, Is.EqualTo(2));

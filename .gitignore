@@ -350,6 +350,4 @@ MigrationBackup/
 .ionide/
 
 # Personal ignores
-StoreAPI/StoreAPI/appsettings.json
-StoreAPI/StoreAPI/Properties/
-DatabaseHelpers/resources/*
+DevOps/DatabaseHelpers/resources/*.csv

@@ -12,6 +12,13 @@ import {
     Tooltip,
     Button,
     Box,
+    useTheme,
+    useMediaQuery,
+    Grid,
+    Card,
+    CardContent,
+    Typography,
+    CardActions,
 } from "@mui/material";
 
 import { useContext, useEffect, useState } from "react";
@@ -20,6 +27,7 @@ import { BACKEND_API_URL, formatDate } from "../../constants";
 import axios, { AxiosError } from "axios";
 import { SnackbarContext } from "../SnackbarContext";
 import { isAuthorized, getAccount, getAuthToken } from "../../auth";
+import Paginator from "../Paginator";
 import { StoreShift } from "../../models/StoreShift";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -34,62 +42,21 @@ export const AllShifts = () => {
 
     const [pageSize] = useState(getAccount()?.userProfile?.pagePreference ?? 5);
     const [pageIndex, setPageIndex] = useState(0);
-    const [totalPages, setTotalPages] = useState(9999999);
 
-    const displayedPages = 9;
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+    const isLargeScreen = useMediaQuery(theme.breakpoints.down("lg"));
 
-    let startPage = pageIndex - Math.floor((displayedPages - 3) / 2) + 1;
-    let endPage = startPage + displayedPages - 3;
-
-    if (startPage <= 2) {
-        startPage = 1;
-        endPage = displayedPages - 1;
-    } else if (endPage >= totalPages - 1) {
-        startPage = totalPages - displayedPages + 2;
-        endPage = totalPages;
-    }
-
-    function handlePageClick(pageNumber: number) {
-        setPageIndex(pageNumber - 1);
-    }
-
-    const fetchPageCount = async () => {
-        try {
-            await axios
-                .get<number>(
-                    `${BACKEND_API_URL}/storeshifts/count/${pageSize}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${getAuthToken()}`,
-                        },
-                    }
-                )
-                .then((response) => {
-                    const data = response.data;
-                    setTotalPages(data);
-                })
-                .catch((reason: AxiosError) => {
-                    console.log(reason.message);
-                    openSnackbar(
-                        "error",
-                        "Failed to fetch page count!\n" +
-                            (String(reason.response?.data).length > 255
-                                ? reason.message
-                                : reason.response?.data)
-                    );
-                });
-        } catch (error) {
-            console.log(error);
-            openSnackbar(
-                "error",
-                "Failed to fetch page count due to an unknown error!"
-            );
-        }
-    };
-
-    useEffect(() => {
-        fetchPageCount();
-    }, [pageSize]);
+    const headers = [
+        { text: "#", hide: false },
+        { text: "Employee Name", hide: false },
+        { text: "Store Name", hide: false },
+        { text: "Start Date", hide: isLargeScreen },
+        { text: "End Date", hide: isLargeScreen },
+        { text: "User", hide: false },
+        { text: "Operations", hide: false },
+    ];
 
     const fetchShifts = async () => {
         setLoading(true);
@@ -160,101 +127,117 @@ export const AllShifts = () => {
             {!loading && shifts.length === 0 && (
                 <p style={{ marginLeft: 16 }}>No shifts found.</p>
             )}
-            {!loading && shifts.length > 0 && (
-                <TableContainer component={Paper}>
-                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell style={{ userSelect: "none" }}>
-                                    #
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Employee Name
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Store Name
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Start Date
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    End Date
-                                </TableCell>
-                                <TableCell
-                                    align="left"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    User
-                                </TableCell>
-                                <TableCell
-                                    align="center"
-                                    style={{
-                                        whiteSpace: "nowrap",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    Operations
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {shifts.map((shift, index) => (
-                                <TableRow key={index}>
-                                    <TableCell component="th" scope="row">
-                                        {pageIndex * pageSize + index + 1}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {shift.storeEmployee?.firstName}{" "}
-                                        {shift.storeEmployee?.lastName}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {shift.store?.name}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {formatDate(shift.startDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {formatDate(shift.endDate)}
-                                    </TableCell>
-                                    <TableCell align="left">
-                                        {shift.user?.name && (
+            {!loading &&
+                shifts.length > 0 &&
+                (isMediumScreen ? (
+                    <Grid container spacing={3}>
+                        {shifts.map((shift, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={index}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography
+                                            variant="h6"
+                                            component="div"
+                                        >
+                                            {shift.storeEmployee?.firstName +
+                                                " " +
+                                                shift.storeEmployee?.lastName +
+                                                " at " +
+                                                shift.store?.name}
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            {"Start Date: "}
+                                            {formatDate(shift.startDate)}
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            {"End Date: "}
+                                            {formatDate(shift.endDate)}
+                                        </Typography>
+                                    </CardContent>
+                                    <CardActions>
+                                        <IconButton
+                                            component={Link}
+                                            to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/details`}
+                                        >
+                                            <Tooltip
+                                                title="View shift details"
+                                                arrow
+                                            >
+                                                <ReadMoreIcon color="primary" />
+                                            </Tooltip>
+                                        </IconButton>
+                                        <IconButton
+                                            component={Link}
+                                            sx={{ ml: 1, mr: 1 }}
+                                            to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/edit`}
+                                            disabled={
+                                                !isAuthorized(shift.user?.id)
+                                            }
+                                        >
+                                            <Tooltip title="Edit shift" arrow>
+                                                <EditIcon />
+                                            </Tooltip>
+                                        </IconButton>
+                                        <IconButton
+                                            component={Link}
+                                            to={`/shifts/${shift.storeId}/${shift.storeEmployeeId}/delete`}
+                                            disabled={
+                                                !isAuthorized(shift.user?.id)
+                                            }
+                                            sx={{ color: "red" }}
+                                        >
+                                            <Tooltip title="Delete shift" arrow>
+                                                <DeleteForeverIcon />
+                                            </Tooltip>
+                                        </IconButton>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                ) : (
+                    <TableContainer component={Paper}>
+                        <Table sx={{ minWidth: 0 }} aria-label="simple table">
+                            <TableHead>
+                                <TableRow>
+                                    {headers.map((header, i) => {
+                                        if (header.hide) {
+                                            return null;
+                                        }
+                                        return (
+                                            <TableCell
+                                                key={i}
+                                                style={{ userSelect: "none" }}
+                                                align={
+                                                    header.text === "Operations"
+                                                        ? "center"
+                                                        : "left"
+                                                }
+                                            >
+                                                {header.text}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {shifts.map((shift, index) => {
+                                    const shiftData = [
+                                        pageIndex * pageSize + index + 1,
+                                        `${shift.storeEmployee?.firstName} ${shift.storeEmployee?.lastName}`,
+                                        shift.store?.name,
+                                        formatDate(shift.startDate),
+                                        formatDate(shift.endDate),
+                                        shift.user?.name ? (
                                             <Link
                                                 to={`/users/${shift.user?.id}/details`}
                                                 title="View user details"
                                             >
                                                 {shift.user?.name}
                                             </Link>
-                                        )}
-                                        {!shift.user?.name && <p>N/A</p>}
-                                    </TableCell>
-                                    <TableCell align="center">
+                                        ) : (
+                                            <p>N/A</p>
+                                        ),
                                         <Box
                                             display="flex"
                                             alignItems="flex-start"
@@ -296,9 +279,7 @@ export const AllShifts = () => {
                                                         shift.user?.id
                                                     )
                                                 }
-                                                sx={{
-                                                    color: "red",
-                                                }}
+                                                sx={{ color: "red" }}
                                             >
                                                 <Tooltip
                                                     title="Delete shift"
@@ -307,100 +288,43 @@ export const AllShifts = () => {
                                                     <DeleteForeverIcon />
                                                 </Tooltip>
                                             </IconButton>
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
+                                        </Box>,
+                                    ];
+                                    return (
+                                        <TableRow key={index}>
+                                            {shiftData.map((data, i) => {
+                                                const header = headers[i];
+                                                if (header.hide) {
+                                                    return null;
+                                                }
+                                                return (
+                                                    <TableCell
+                                                        key={i}
+                                                        align={
+                                                            header.text ===
+                                                            "Operations"
+                                                                ? "center"
+                                                                : "left"
+                                                        }
+                                                    >
+                                                        {data}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                ))}
             {!loading && shifts.length > 0 && (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginTop: 16,
-                    }}
-                >
-                    <Button
-                        variant="contained"
-                        onClick={() =>
-                            setPageIndex((prevPageIndex) =>
-                                Math.max(prevPageIndex - 1, 0)
-                            )
-                        }
-                        disabled={pageIndex === 0}
-                    >
-                        &lt;
-                    </Button>
-                    {startPage > 1 && (
-                        <>
-                            <Button
-                                variant={
-                                    pageIndex === 0 ? "contained" : "outlined"
-                                }
-                                onClick={() => handlePageClick(1)}
-                                style={{
-                                    marginLeft: 8,
-                                    marginRight: 8,
-                                }}
-                            >
-                                1
-                            </Button>
-                            <span>...</span>
-                        </>
-                    )}
-                    {Array.from(
-                        { length: endPage - startPage + 1 },
-                        (_, i) => i + startPage
-                    ).map((number) => (
-                        <Button
-                            key={number}
-                            variant={
-                                pageIndex === number - 1
-                                    ? "contained"
-                                    : "outlined"
-                            }
-                            onClick={() => handlePageClick(number)}
-                            style={{
-                                marginLeft: 8,
-                                marginRight: 8,
-                            }}
-                        >
-                            {number}
-                        </Button>
-                    ))}
-                    {endPage < totalPages && (
-                        <>
-                            <span>...</span>
-                            <Button
-                                variant={
-                                    pageIndex === totalPages - 1
-                                        ? "contained"
-                                        : "outlined"
-                                }
-                                onClick={() => handlePageClick(totalPages)}
-                                style={{
-                                    marginLeft: 8,
-                                    marginRight: 8,
-                                }}
-                            >
-                                {totalPages}
-                            </Button>
-                        </>
-                    )}
-                    <Button
-                        variant="contained"
-                        onClick={() =>
-                            setPageIndex((prevPageIndex) => prevPageIndex + 1)
-                        }
-                        disabled={pageIndex + 1 >= totalPages}
-                    >
-                        &gt;
-                    </Button>
-                </div>
+                <Paginator
+                    route="storeshifts"
+                    pageSize={pageSize}
+                    pageIndex={pageIndex}
+                    setPageIndex={setPageIndex}
+                />
             )}
         </Container>
     );

@@ -22,6 +22,38 @@ namespace StoreAPI.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("StoreAPI.Models.ConfirmationCode", b =>
+                {
+                    b.Property<long?>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long?>("Id"));
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("Expiration")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Used")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("UserId")
+                        .IsRequired()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ConfirmationCodes");
+                });
+
             modelBuilder.Entity("StoreAPI.Models.Store", b =>
                 {
                     b.Property<long>("Id")
@@ -58,7 +90,6 @@ namespace StoreAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<long?>("UserId")
-                        .IsRequired()
                         .HasColumnType("bigint");
 
                     b.Property<string>("ZipCode")
@@ -95,14 +126,12 @@ namespace StoreAPI.Migrations
                         .HasColumnType("float");
 
                     b.Property<long?>("StoreEmployeeRoleId")
-                        .IsRequired()
                         .HasColumnType("bigint");
 
                     b.Property<DateTime?>("TerminationDate")
                         .HasColumnType("datetime2");
 
                     b.Property<long?>("UserId")
-                        .IsRequired()
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
@@ -132,7 +161,6 @@ namespace StoreAPI.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<long?>("UserId")
-                        .IsRequired()
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
@@ -157,12 +185,13 @@ namespace StoreAPI.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<long?>("UserId")
-                        .IsRequired()
                         .HasColumnType("bigint");
 
                     b.HasKey("StoreId", "StoreEmployeeId");
 
                     b.HasIndex("StoreEmployeeId");
+
+                    b.HasIndex("StoreId");
 
                     b.HasIndex("UserId");
 
@@ -177,8 +206,10 @@ namespace StoreAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("AccessLevel")
-                        .HasColumnType("bigint");
+                    b.Property<int>("AccessLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(450)");
@@ -215,9 +246,25 @@ namespace StoreAPI.Migrations
                     b.Property<int>("MaritalStatus")
                         .HasColumnType("int");
 
+                    b.Property<long>("PagePreference")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(5L);
+
                     b.HasKey("UserId");
 
                     b.ToTable("UserProfiles");
+                });
+
+            modelBuilder.Entity("StoreAPI.Models.ConfirmationCode", b =>
+                {
+                    b.HasOne("StoreAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("StoreAPI.Models.Store", b =>
@@ -225,7 +272,7 @@ namespace StoreAPI.Migrations
                     b.HasOne("StoreAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
@@ -235,12 +282,12 @@ namespace StoreAPI.Migrations
                     b.HasOne("StoreAPI.Models.StoreEmployeeRole", "StoreEmployeeRole")
                         .WithMany("StoreEmployees")
                         .HasForeignKey("StoreEmployeeRoleId")
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("StoreAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("StoreEmployeeRole");
 
@@ -252,7 +299,7 @@ namespace StoreAPI.Migrations
                     b.HasOne("StoreAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
@@ -262,17 +309,19 @@ namespace StoreAPI.Migrations
                     b.HasOne("StoreAPI.Models.StoreEmployee", "StoreEmployee")
                         .WithMany("StoreShifts")
                         .HasForeignKey("StoreEmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("StoreAPI.Models.Store", "Store")
                         .WithMany("StoreShifts")
                         .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("StoreAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Store");
 
@@ -286,6 +335,7 @@ namespace StoreAPI.Migrations
                     b.HasOne("StoreAPI.Models.User", "User")
                         .WithOne("UserProfile")
                         .HasForeignKey("StoreAPI.Models.UserProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
