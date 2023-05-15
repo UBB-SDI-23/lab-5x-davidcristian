@@ -12,3 +12,5 @@ describe("Employees", () => {
         });
     });
 });
+
+export {};
