@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/home/davidcristian/git/lab-5x-davidcristian/StoreAPI/StoreAPI
-ExecStart=/usr/bin/dotnet run --configuration Release --urls http://localhost:48165
+ExecStart=/usr/bin/dotnet run --configuration Release --urls http://localhost:5066
 Restart=always
 RestartSec=10
 SyslogIdentifier=storeapi

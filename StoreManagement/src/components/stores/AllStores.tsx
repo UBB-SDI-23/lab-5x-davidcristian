@@ -99,7 +99,7 @@ export const AllStores = () => {
     }, [pageIndex, pageSize]);
 
     return (
-        <Container>
+        <Container data-testid="test-all-stores-container">
             <h1
                 style={{
                     paddingTop: 26,

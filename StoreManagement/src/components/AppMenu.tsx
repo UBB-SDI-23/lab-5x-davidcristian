@@ -34,7 +34,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 // TODO: fix button borders while resizing on lg
 export const AppMenu = () => {
     const theme = useTheme();
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg")); // lg
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down(1260)); // lg
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
