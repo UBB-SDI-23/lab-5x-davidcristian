@@ -1,2 +1,3 @@
-../../StoreAPI/StoreAPI/**/bin
-../../StoreAPI/StoreAPI/**/obj
+# .dockerignore
+**/obj/
+**/bin/

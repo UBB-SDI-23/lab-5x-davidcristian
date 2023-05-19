@@ -89,7 +89,7 @@ namespace StoreAPI
             var app = builder.Build();
 
             int retryCount = 0;
-            while (retryCount < 5)
+            while (retryCount < 6)
             {
                 try
                 {
@@ -99,16 +99,16 @@ namespace StoreAPI
                         context!.Database.Migrate();
                         SeedData.InitializeAsync(scope.ServiceProvider).Wait();
                     }
-                    break; // Break the loop if the connection and migration is successful
+
+                    break;
                 }
-                catch (Exception ex) // Catch the specific exception type(s) you expect on failure here.
+                catch (Exception)
                 {
                     retryCount++;
-                    if (retryCount >= 5)
-                    {
-                        throw; // Rethrow the exception if all retries failed
-                    }
-                    Thread.Sleep(5000); // Wait for 5 seconds before retrying
+                    if (retryCount >= 6)
+                        throw;
+
+                    Thread.Sleep(10000);
                 }
             }
 
