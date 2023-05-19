@@ -139,7 +139,7 @@ export const AllEmployees = () => {
     }, [sorting]);
 
     return (
-        <Container data-testid="test-all-employees-container">
+        <Container>
             <h1
                 style={{
                     paddingTop: 26,
@@ -165,7 +165,12 @@ export const AllEmployees = () => {
                 </Button>
             )}
             {!loading && employees.length === 0 && (
-                <p style={{ marginLeft: 16 }}>No employees found.</p>
+                <p
+                    data-testid="test-all-employees-empty"
+                    style={{ marginLeft: 16 }}
+                >
+                    No employees found.
+                </p>
             )}
             {!loading &&
                 employees.length > 0 &&

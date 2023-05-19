@@ -2,12 +2,25 @@ version: '3.8'
 
 services:
   storeapi:
-    image: storeapiimage
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.storeapi
     ports:
       - 5066:5066
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=https://*:5066
+      - ASPNETCORE_URLS=http://*:5066
+    depends_on:
+      - storedb
+
+  storedb:
+    build: 
+      context: .
+      dockerfile: Dockerfile.storedb
+    ports:
+      - 1433:1433
+    volumes:
+      - /var/opt/mssql:/var/opt/mssql
+
+volumes:
+  storedb-data:

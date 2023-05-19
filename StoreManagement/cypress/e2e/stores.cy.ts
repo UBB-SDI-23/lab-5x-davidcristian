@@ -6,9 +6,7 @@ describe("Stores", () => {
             });
 
             cy.visit("http://localhost:5173/stores");
-            cy.get('[data-testid="test-all-stores-container"]').should("exist");
+            cy.get('[data-testid="test-all-stores-empty"]').should("not.exist");
         });
     });
 });
-
-export {};

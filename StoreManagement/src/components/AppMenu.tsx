@@ -31,6 +31,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import LocalPoliceIcon from "@mui/icons-material/LocalPolice";
 import LogoutIcon from "@mui/icons-material/Logout";
 
+// TODO: user profile icon on small screen
 // TODO: fix button borders while resizing on lg
 export const AppMenu = () => {
     const theme = useTheme();

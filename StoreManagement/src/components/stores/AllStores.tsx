@@ -99,7 +99,7 @@ export const AllStores = () => {
     }, [pageIndex, pageSize]);
 
     return (
-        <Container data-testid="test-all-stores-container">
+        <Container>
             <h1
                 style={{
                     paddingTop: 26,
@@ -125,7 +125,12 @@ export const AllStores = () => {
                 </Button>
             )}
             {!loading && stores.length === 0 && (
-                <p style={{ marginLeft: 16 }}>No stores found.</p>
+                <p
+                    data-testid="test-all-stores-empty"
+                    style={{ marginLeft: 16 }}
+                >
+                    No stores found.
+                </p>
             )}
             {!loading &&
                 stores.length > 0 &&

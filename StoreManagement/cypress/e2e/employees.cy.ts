@@ -6,11 +6,9 @@ describe("Employees", () => {
             });
 
             cy.visit("http://localhost:5173/employees");
-            cy.get('[data-testid="test-all-employees-container"]').should(
-                "exist"
+            cy.get('[data-testid="test-all-employees-empty"]').should(
+                "not.exist"
             );
         });
     });
 });
-
-export {};

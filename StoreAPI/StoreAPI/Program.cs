@@ -69,8 +69,18 @@ namespace StoreAPI
 
             var connectionString = builder.Configuration.GetConnectionString("StoreDatabase");
             builder.Services.AddDbContext<StoreContext>(opt => opt
-                .UseSqlServer(connectionString, options => options.CommandTimeout(60))
-                //.UseLazyLoadingProxies()
+                .UseSqlServer(
+                    connectionString,
+                    sqlServerOptionsAction: sqlOptions =>
+                    {
+                        sqlOptions.CommandTimeout(60);
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 6,
+                            maxRetryDelay: TimeSpan.FromSeconds(10),
+                            errorNumbersToAdd: null);
+                    }
+                )
+            //.UseLazyLoadingProxies()
             );
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

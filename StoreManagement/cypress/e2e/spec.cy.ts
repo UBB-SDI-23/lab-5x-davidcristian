@@ -15,5 +15,3 @@ describe("My First Test", () => {
         cy.get(".action-email").should("have.value", "fake@email.com");
     });
 });
-
-export {};

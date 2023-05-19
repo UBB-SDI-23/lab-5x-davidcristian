@@ -99,7 +99,7 @@ export const AllRoles = () => {
     }, [pageIndex, pageSize]);
 
     return (
-        <Container data-testid="test-all-roles-container">
+        <Container>
             <h1
                 style={{
                     paddingTop: 26,
@@ -124,7 +124,12 @@ export const AllRoles = () => {
                 </Button>
             )}
             {!loading && roles.length === 0 && (
-                <p style={{ marginLeft: 16 }}>No roles found.</p>
+                <p
+                    data-testid="test-all-roles-empty"
+                    style={{ marginLeft: 16 }}
+                >
+                    No roles found.
+                </p>
             )}
             {!loading &&
                 roles.length > 0 &&

@@ -6,9 +6,7 @@ describe("Roles", () => {
             });
 
             cy.visit("http://localhost:5173/roles");
-            cy.get('[data-testid="test-all-roles-container"]').should("exist");
+            cy.get('[data-testid="test-all-roles-empty"]').should("not.exist");
         });
     });
 });
-
-export {};
