@@ -69,18 +69,8 @@ namespace StoreAPI
 
             var connectionString = builder.Configuration.GetConnectionString("StoreDatabase");
             builder.Services.AddDbContext<StoreContext>(opt => opt
-                .UseSqlServer(
-                    connectionString,
-                    sqlServerOptionsAction: sqlOptions =>
-                    {
-                        sqlOptions.CommandTimeout(60);
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 6,
-                            maxRetryDelay: TimeSpan.FromSeconds(10),
-                            errorNumbersToAdd: null);
-                    }
-                )
-            //.UseLazyLoadingProxies()
+                .UseSqlServer(connectionString, options => options.CommandTimeout(60))
+                //.UseLazyLoadingProxies()
             );
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -97,13 +87,29 @@ namespace StoreAPI
             });
 
             var app = builder.Build();
-            
-            // Seed database
-            using (var scope = app.Services.CreateScope())
+
+            int retryCount = 0;
+            while (retryCount < 5)
             {
-                var context = scope.ServiceProvider.GetService<StoreContext>();
-                context!.Database.Migrate();
-                SeedData.InitializeAsync(scope.ServiceProvider).Wait();
+                try
+                {
+                    using (var scope = app.Services.CreateScope())
+                    {
+                        var context = scope.ServiceProvider.GetService<StoreContext>();
+                        context!.Database.Migrate();
+                        SeedData.InitializeAsync(scope.ServiceProvider).Wait();
+                    }
+                    break; // Break the loop if the connection and migration is successful
+                }
+                catch (Exception ex) // Catch the specific exception type(s) you expect on failure here.
+                {
+                    retryCount++;
+                    if (retryCount >= 5)
+                    {
+                        throw; // Rethrow the exception if all retries failed
+                    }
+                    Thread.Sleep(5000); // Wait for 5 seconds before retrying
+                }
             }
 
             app.UseSwagger();
