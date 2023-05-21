@@ -1,6 +1,7 @@
 import { User, AccessLevel } from "./models/User";
 import jwt_decode from "jwt-decode";
 
+// TODO: localStorage + get data from token
 interface JwtPayload {
     exp: number;
 }

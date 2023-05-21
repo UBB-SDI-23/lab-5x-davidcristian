@@ -67,7 +67,10 @@ namespace StoreAPI
                 };
             });
 
-            var connectionString = builder.Configuration.GetConnectionString("StoreDatabase");
+            var connectionString = builder.Configuration.GetConnectionString("DockerStoreDatabase");
+            #if DEBUG
+                connectionString = builder.Configuration.GetConnectionString("LocalStoreDatabase");
+            #endif
             builder.Services.AddDbContext<StoreContext>(opt => opt
                 .UseSqlServer(connectionString, options => options.CommandTimeout(60))
                 //.UseLazyLoadingProxies()

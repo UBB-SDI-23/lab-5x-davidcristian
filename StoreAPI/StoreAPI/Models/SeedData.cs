@@ -16,12 +16,12 @@ namespace StoreAPI.Models
         private const int MIN_ROLE_LEVEL = 1;
         private const int MAX_ROLE_LEVEL = 100;
 
-        private const int EMPLOYEE_ROLES_COUNT = 1_000_0;
-        private const int EMPLOYEES_COUNT = 1_000_0;
-        private const int STORES_COUNT = 1_000_0;
-        private const int STORE_SHIFTS_COUNT = 10_000_0;
+        private const int EMPLOYEE_ROLES_COUNT = 1_000;
+        private const int EMPLOYEES_COUNT = 1_000;
+        private const int STORES_COUNT = 1_000;
+        private const int STORE_SHIFTS_COUNT = 10_000;
 
-        private const int USERS_COUNT = 10_0;
+        private const int USERS_COUNT = 100;
         private static readonly string PASSWORD = UsersController.HashPassword("a");
         private const AccessLevel ACCESS_LEVEL = AccessLevel.Regular;
         private const long PAGE_PREFERENCE = 5;
