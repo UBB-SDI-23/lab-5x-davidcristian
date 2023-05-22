@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 
 import { useState, useEffect, useRef, useContext } from "react";
+import { BACKEND_API_URL } from "../constants";
 import { SnackbarContext } from "./SnackbarContext";
 
 export const Chat = () => {
@@ -28,7 +29,17 @@ export const Chat = () => {
     const [messages, setMessages] = useState<string[]>([]);
 
     useEffect(() => {
-        webSocket.current = new WebSocket("ws://localhost:5066/ws");
+        let api_url = BACKEND_API_URL;
+        if (api_url.startsWith("https://")) {
+            api_url = api_url.replace("https://", "wss://");
+        } else if (api_url.startsWith("http://")) {
+            api_url = api_url.replace("http://", "ws://");
+        } else {
+            openSnackbar("error", "Invalid API URL!");
+            return;
+        }
+
+        webSocket.current = new WebSocket(`${api_url}/chat`);
 
         webSocket.current.onmessage = (message) => {
             setMessages((prev) => [...prev, message.data]);

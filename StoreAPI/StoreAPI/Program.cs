@@ -131,7 +131,7 @@ namespace StoreAPI
             app.UseAuthorization();
 
             app.UseWebSockets();
-            app.Map("/ws", x => x.UseMiddleware<ChatMiddleware>());
+            app.Map("/api/chat", x => x.UseMiddleware<ChatMiddleware>());
 
             app.MapControllers();
             app.Run();
