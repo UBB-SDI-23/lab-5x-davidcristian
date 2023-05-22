@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
     name: storeapi-deployment
 spec:
-    replicas: 1
+    replicas: 3
     selector:
         matchLabels:
             app: storeapi
@@ -17,3 +17,6 @@ spec:
                   image: gcr.io/$PROJECT/storeapi:latest
                   ports:
                       - containerPort: 5000
+                  resources:
+                      requests:
+                          cpu: 500m
