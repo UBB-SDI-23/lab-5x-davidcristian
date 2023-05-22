@@ -10,7 +10,7 @@ spec:
         - ReadWriteOnce
     persistentVolumeReclaimPolicy: Retain
     gcePersistentDisk:
-        pdName: storedb-mssql-persistent
+        pdName: storeapi-mssql-persistent
         fsType: ext4
 
 ---
