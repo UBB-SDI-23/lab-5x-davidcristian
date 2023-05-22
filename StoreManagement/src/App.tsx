@@ -9,6 +9,7 @@ import { SnackbarContext } from "./components/SnackbarContext";
 
 import { AppHome } from "./components/AppHome";
 import { AppMenu } from "./components/AppMenu";
+import { Chat } from "./components/Chat";
 
 import { ShowStoreSalaryReport } from "./components/reports/ShowStoreSalaryReport";
 import { ShowStoreHeadcountReport } from "./components/reports/ShowStoreHeadcountReport";
@@ -102,6 +103,7 @@ function App() {
 
                     <Routes>
                         <Route path="/" element={<AppHome />} />
+                        <Route path="/chat" element={<Chat />} />
 
                         <Route
                             path="/users/register"

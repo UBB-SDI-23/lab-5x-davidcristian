@@ -28,6 +28,7 @@ import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import GroupIcon from "@mui/icons-material/Group";
 
+import ChatIcon from "@mui/icons-material/Chat";
 import LocalPoliceIcon from "@mui/icons-material/LocalPolice";
 import LogoutIcon from "@mui/icons-material/Logout";
 
@@ -83,6 +84,7 @@ export const AppMenu = () => {
         { link: "/shifts", title: "Shifts", icon: <AccessTimeFilledIcon /> },
         { link: "/salaryreport", title: "Salaries", icon: <AttachMoneyIcon /> },
         { link: "/headcountreport", title: "Headcount", icon: <GroupIcon /> },
+        { link: "/chat", title: "Chat", icon: <ChatIcon /> },
     ];
 
     return (

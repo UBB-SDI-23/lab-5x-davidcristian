@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using StoreAPI.Middleware;
 using StoreAPI.Models;
 using StoreAPI.Services;
 using System.Text;
@@ -128,6 +129,9 @@ namespace StoreAPI
 
             app.UseCors();
             app.UseAuthorization();
+
+            app.UseWebSockets();
+            app.Map("/ws", x => x.UseMiddleware<ChatMiddleware>());
 
             app.MapControllers();
             app.Run();
