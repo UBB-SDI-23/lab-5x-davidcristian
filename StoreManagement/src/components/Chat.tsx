@@ -71,23 +71,27 @@ export const Chat = () => {
         }
 
         if (webSocket.current && nickName) {
-            const data = `${nickName}: ${inputValue}`;
+            const data = inputValue;
             setInputValue("");
 
             webSocket.current.send(data);
-            setMessages((prev) => [...prev, data]);
         } else {
             openSnackbar("error", "You are not connected to the chat!");
         }
     };
 
     const handleUsernameSet = () => {
-        if (tempName.length < 3) {
+        const newName = tempName.trim();
+        if (newName.length < 3) {
             openSnackbar("error", "Nickname must be at least 3 characters!");
             return;
         }
 
-        setNickName(tempName);
+        setNickName(newName);
+        console.log("a");
+        if (webSocket.current && newName) {
+            webSocket.current.send(newName);
+        }
     };
 
     function handleInputKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
