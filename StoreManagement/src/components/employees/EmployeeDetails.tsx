@@ -28,6 +28,7 @@ export const EmployeeDetails = () => {
 
     const { employeeId } = useParams();
     const [employee, setEmployee] = useState<Employee>();
+    const [salaryPrediction, setSalaryPrediction] = useState<number>(-1);
 
     const fetchEmployee = async () => {
         setLoading(true);
@@ -44,7 +45,6 @@ export const EmployeeDetails = () => {
                 .then((response) => {
                     const employee = response.data;
                     setEmployee(employee);
-                    setLoading(false);
                 })
                 .catch((reason: AxiosError) => {
                     console.log(reason.message);
@@ -65,9 +65,60 @@ export const EmployeeDetails = () => {
         }
     };
 
+    const fetchSalaryPrediction = async () => {
+        // calculate tenure: number of days between employment date and termination date. If termination date is null, use today's date.
+        const tenure = Math.floor(
+            (new Date(employee?.terminationDate ?? new Date()).getTime() -
+                new Date(employee?.employmentDate!).getTime()) /
+                (1000 * 60 * 60 * 24)
+        );
+
+        // calculate tenure in 10 years based on the tenure
+        const futureTenure = tenure + 365 * 10;
+
+        try {
+            await axios
+                .get<number>(
+                    `${BACKEND_API_URL}/storeemployees/predict?role=${employee?.storeEmployeeRole?.name}&tenure=${futureTenure}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const prediction = response.data;
+                    setSalaryPrediction(prediction);
+                    setLoading(false);
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch employee salary prediction!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch employee salary prediction due to an unknown error!"
+            );
+        }
+    };
+
     useEffect(() => {
         fetchEmployee();
     }, [employeeId]);
+
+    useEffect(() => {
+        if (employee) {
+            fetchSalaryPrediction();
+        }
+    }, [employee]);
 
     return (
         <Container>
@@ -113,6 +164,12 @@ export const EmployeeDetails = () => {
                                 {formatDate(employee?.terminationDate)}
                             </p>
                             <p>Salary: {employee?.salary}</p>
+                            <p>
+                                Predicted salary in 10 years:{" "}
+                                {salaryPrediction < 0
+                                    ? "N/A"
+                                    : salaryPrediction}
+                            </p>
                             <p>
                                 Role:{" "}
                                 {employee?.storeEmployeeRole?.name ?? "Unknown"}

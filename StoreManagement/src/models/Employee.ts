@@ -18,6 +18,7 @@ export interface Employee {
     employmentDate?: string;
     terminationDate?: string;
     salary: number;
+    prediction?: number;
 
     storeEmployeeRoleId?: number;
 

@@ -46,7 +46,7 @@ export const EmployeeUpdate = () => {
         terminationDate: "",
         salary: 0,
 
-        storeEmployeeRoleId: 1,
+        storeEmployeeRoleId: -1,
     });
 
     const employeeRole = useRef<EmployeeRole>({
@@ -98,6 +98,62 @@ export const EmployeeUpdate = () => {
             openSnackbar(
                 "error",
                 "Failed to fetch employee details due to an unknown error!"
+            );
+        }
+    };
+
+    const fetchSalaryPrediction = async () => {
+        if (
+            employee?.employmentDate === "" ||
+            employeeRole.current.name === ""
+        ) {
+            console.log("Missing data for salary prediction!");
+            return;
+        }
+
+        // calculate tenure: number of days between employment date and termination date. If termination date is null, use today's date.
+        const tenure = Math.floor(
+            (new Date(
+                employee?.terminationDate === ""
+                    ? new Date()
+                    : employee?.terminationDate!
+            ).getTime() -
+                new Date(employee?.employmentDate!).getTime()) /
+                (1000 * 60 * 60 * 24)
+        );
+
+        try {
+            await axios
+                .get<number>(
+                    `${BACKEND_API_URL}/storeemployees/predict?role=${employeeRole.current.name}&tenure=${tenure}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getAuthToken()}`,
+                        },
+                    }
+                )
+                .then((response) => {
+                    const prediction = response.data;
+                    openSnackbar(
+                        "info",
+                        `Suggested employee salary: ${prediction}`
+                    );
+                })
+                .catch((reason: AxiosError) => {
+                    console.log(reason.message);
+                    openSnackbar(
+                        "error",
+                        "Failed to fetch employee salary prediction!\n" +
+                            (String(reason.response?.data).length > 255
+                                ? reason.message
+                                : reason.response?.data)
+                    );
+                });
+        } catch (error) {
+            console.log(error);
+            openSnackbar(
+                "error",
+                "Failed to fetch employee salary prediction due to an unknown error!"
             );
         }
     };
@@ -320,14 +376,16 @@ export const EmployeeUpdate = () => {
                                 variant="outlined"
                                 fullWidth
                                 sx={{ mb: 2 }}
-                                onChange={(event) =>
+                                onChange={(event) => {
                                     setEmployee({
                                         ...employee,
                                         employmentDate: new Date(
                                             event.target.value
                                         ).toISOString(),
-                                    })
-                                }
+                                    });
+
+                                    fetchSalaryPrediction();
+                                }}
                             />
 
                             <TextField
@@ -341,14 +399,16 @@ export const EmployeeUpdate = () => {
                                 variant="outlined"
                                 fullWidth
                                 sx={{ mb: 2 }}
-                                onChange={(event) =>
+                                onChange={(event) => {
                                     setEmployee({
                                         ...employee,
                                         terminationDate: new Date(
                                             event.target.value
                                         ).toISOString(),
-                                    })
-                                }
+                                    });
+
+                                    fetchSalaryPrediction();
+                                }}
                             />
 
                             <TextField
@@ -396,7 +456,10 @@ export const EmployeeUpdate = () => {
                                         setEmployee({
                                             ...employee,
                                             storeEmployeeRoleId: value.id,
+                                            storeEmployeeRole: value,
                                         });
+
+                                        fetchSalaryPrediction();
                                     }
                                 }}
                             />
